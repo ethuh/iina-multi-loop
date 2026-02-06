@@ -158,6 +158,22 @@ class MPVController: NSObject {
     MPVProperty.currentAo: MPV_FORMAT_STRING
   ]
 
+  private static let multiLoopTimePosReplyUserdata: UInt64 = 1
+  private var multiLoopTimePosObserved: Bool = false
+
+  func setMultiLoopTimePosObservationEnabled(_ enabled: Bool) {
+    guard mpv != nil else { return }
+    if enabled {
+      guard !multiLoopTimePosObserved else { return }
+      mpv_observe_property(mpv, MPVController.multiLoopTimePosReplyUserdata, MPVProperty.timePos, MPV_FORMAT_DOUBLE)
+      multiLoopTimePosObserved = true
+    } else {
+      guard multiLoopTimePosObserved else { return }
+      mpv_unobserve_property(mpv, MPVController.multiLoopTimePosReplyUserdata)
+      multiLoopTimePosObserved = false
+    }
+  }
+
   /// Map from mpv codec name to core media video codec types.
   ///
   /// This map only contains the mpv codecs `adjustCodecWhiteList` can remove from the mpv `hwdec-codecs` option.
@@ -752,8 +768,12 @@ class MPVController: NSObject {
     // Remove observers for IINA preferences. Must not attempt to change a mpv setting in response
     // to an IINA preference change while mpv is shutting down.
     removeOptionObservers()
-    // Remove observers for mpv properties. Because 0 was passed for reply_userdata when registering
-    // mpv property observers all observers can be removed in one call.
+    // Remove observers for mpv properties.
+    // Most observers use reply_userdata=0; multi-loop uses a dedicated userdata.
+    if multiLoopTimePosObserved {
+      mpv_unobserve_property(mpv, MPVController.multiLoopTimePosReplyUserdata)
+      multiLoopTimePosObserved = false
+    }
     mpv_unobserve_property(mpv, 0)
   }
 
@@ -771,8 +791,11 @@ class MPVController: NSObject {
     // Remove observers for IINA preference. Must not attempt to change a mpv setting
     // in response to an IINA preference change while mpv is shutting down.
     removeOptionObservers()
-    // Remove observers for mpv properties. Because 0 was passed for reply_userdata when
-    // registering mpv property observers all observers can be removed in one call.
+    // Remove observers for mpv properties.
+    if multiLoopTimePosObserved {
+      mpv_unobserve_property(mpv, MPVController.multiLoopTimePosReplyUserdata)
+      multiLoopTimePosObserved = false
+    }
     mpv_unobserve_property(mpv, 0)
     // Start mpv quitting. Even though this command is being sent using the synchronous
     // command API the quit command is special and will be executed by mpv asynchronously.
@@ -1260,6 +1283,13 @@ class MPVController: NSObject {
 
     case MPVProperty.chapter:
       DispatchQueue.main.async { self.player.chapterChanged() }
+
+    case MPVProperty.timePos:
+      guard let data = UnsafePointer<Double>(OpaquePointer(property.data))?.pointee else {
+        logPropertyValueError(MPVProperty.timePos, property.format)
+        break
+      }
+      DispatchQueue.main.async { self.player.multiLoopHandleTimePosUpdate(data) }
 
     case MPVOption.PlaybackControl.speed:
       guard let speed = UnsafePointer<Double>(OpaquePointer(property.data))?.pointee else {
