@@ -90,6 +90,17 @@ class PlaybackInfo {
       }
     }
   }
+
+  /// The raw path string as reported by mpv (may be a URL).
+  ///
+  /// This is used for features that must key off the same identifier mpv uses for watch-later.
+  var mpvPath: String?
+
+  /// MD5 key derived from `mpvPath` for sidecar persistence.
+  ///
+  /// Note: This intentionally differs from `mpvMd5` for network resources because `mpvMd5`
+  /// is based on `currentURL.path`.
+  var watchLaterKey: String?
   var isNetworkResource: Bool = false
   var mpvMd5: String?
 
