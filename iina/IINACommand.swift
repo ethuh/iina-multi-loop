@@ -37,4 +37,8 @@ enum IINACommand: String {
   case findOnlineSubs = "find-online-subs"
   case saveDownloadedSub = "save-downloaded-sub"
 
+  case multiLoopSetPoint = "multi-loop-set-point"
+  case multiLoopStartSequence = "multi-loop-start-sequence"
+  case multiLoopClearAll = "multi-loop-clear-all"
+
 }

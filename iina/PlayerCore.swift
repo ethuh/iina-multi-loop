@@ -206,6 +206,8 @@ class PlayerCore: NSObject {
 
   lazy var info: PlaybackInfo = PlaybackInfo(self)
 
+  lazy var multiLoop: MultiLoopController = MultiLoopController(player: self)
+
   var syncUITimer: Timer?
 
   var displayOSD: Bool = true
@@ -1108,6 +1110,38 @@ class PlayerCore: NSObject {
     sendOSD(.abLoop(info.abLoopStatus))
   }
 
+  func multiLoopSetPoint() {
+    let result = multiLoop.setPointAtCurrentTime()
+    switch result {
+    case .startSet:
+      sendOSD(.multiLoopPoint)
+    case .segmentAdded:
+      sendOSD(.multiLoopSegmentAdded)
+    case .ignored:
+      break
+    }
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.syncSlider()
+  }
+
+  func multiLoopStartSequence() {
+    if multiLoop.startSequenceFromFirstSegment() {
+      sendOSD(.multiLoopSequenceStart)
+    }
+  }
+
+  func multiLoopClearAll() {
+    multiLoop.clearAll(deleteFromDisk: true)
+    multiLoop.updateObservationForSegments()
+    sendOSD(.multiLoopClearAll)
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.syncSlider()
+  }
+
+  func multiLoopHandleTimePosUpdate(_ timePos: Double) {
+    multiLoop.handleTimePosUpdate(timePos)
+  }
+
   /// Synchronize IINA with the state of the [mpv](https://mpv.io/manual/stable/) A-B loop command.
   func syncAbLoop() {
     // Obtain the values of the ab-loop-a and ab-loop-b options representing the A & B loop points.
@@ -1899,6 +1933,10 @@ class PlayerCore: NSObject {
     info.disableOSDForFileLoading = true
     currentMediaIsAudio = .unknown
 
+    info.mpvPath = path
+    info.watchLaterKey = Utility.mpvWatchLaterMd5(path)
+    multiLoop.resetForNewItem()
+
     info.currentURL = path.contains("://") ?
       URL(string: path.addingPercentEncoding(withAllowedCharacters: .urlAllowed) ?? path) :
       URL(fileURLWithPath: path)
@@ -2019,6 +2057,13 @@ class PlayerCore: NSObject {
     getPlaylist()
     getChapters()
     syncAbLoop()
+
+    multiLoop.loadIfAvailable()
+    multiLoop.updateObservationForSegments()
+    if mainWindow.loaded, info.state.active {
+      mainWindow.syncSlider()
+    }
+
     refreshSyncUITimer()
     touchBarSupport.setupTouchBarUI()
 

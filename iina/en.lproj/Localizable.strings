@@ -113,6 +113,10 @@
 "osd.abloop.a" = "AB-Loop: A";
 "osd.abloop.b" = "AB-Loop: B";
 "osd.abloop.clear" = "AB-Loop: Cleared";
+"osd.multiloop.point" = "Multi-Loop: Point Set";
+"osd.multiloop.segment_added" = "Multi-Loop: Segment Added";
+"osd.multiloop.sequence_start" = "Multi-Loop: Sequence";
+"osd.multiloop.clear_all" = "Multi-Loop: Cleared";
 "osd.stop" = "Stop";
 "osd.chapter" = "Chapter: %@";
 "osd.subtitle_scale" = "Subtitle Scale: %@x";
