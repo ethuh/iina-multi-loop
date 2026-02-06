@@ -178,6 +178,32 @@ class PlaySliderCell: NSSliderCell {
     barColorRight.setFill()
     path.fill()
     NSGraphicsContext.restoreGraphicsState()
+
+    // draw multi-loop markers (A,B,C,D,...)
+    if let totalSec = info.videoDuration?.second, totalSec != 0 {
+      let times = playerCore.multiLoop.markerTimes()
+      if !times.isEmpty {
+        let markerColor = NSColor(named: .mainSliderLoopKnob)!
+        let sliderSpan = slider.maxValue - slider.minValue
+        let effectiveBarWidth = barRect.width - knobWidth
+        let playKnobRect = knobRect(flipped: flipped)
+        let markerHeight = round(knobHeight * 0.75)
+        let markerY = playKnobRect.origin.y + 0.5 * (playKnobRect.height - markerHeight)
+
+        for t in times {
+          let clampedTime = t.clamped(to: 0...totalSec)
+          let percentValue = (clampedTime / totalSec) * sliderSpan
+          let percentage = CGFloat(percentValue / sliderSpan)
+          var x = barRect.origin.x + percentage * effectiveBarWidth
+          let maxX = barRect.maxX - knobWidth
+          x = x.clamped(to: barRect.minX...maxX)
+          let markerRect = NSMakeRect(round(x), markerY, knobWidth, markerHeight)
+          let markerPath = NSBezierPath(roundedRect: markerRect, xRadius: knobRadius, yRadius: knobRadius)
+          markerColor.setFill()
+          markerPath.fill()
+        }
+      }
+    }
   }
 
   // MARK:- Tracking the Mouse
