@@ -1,5 +1,5 @@
 <p align="center">
-<img height="256" src="iina/Assets.xcassets/AppIcon.appiconset/iina-icon-256.png">
+<img height="256" src="iina/Assets.xcassets/AppIcon.appiconset/icon_256x256.png">
 </p>
 
 <h1 align="center">IINA</h1>
@@ -153,5 +153,4 @@ IINA is always looking for contributions, whether it's through bug reports, code
 > 🚀 **Interested in creating an IINA plugin?**
 > 
 > Start by exploring the existing plugins here to understand patterns and best practices. Once you’ve built your own plugin, please contribute back by adding it to this README so others can discover and use it.
-
 
