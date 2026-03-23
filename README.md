@@ -19,8 +19,11 @@ This is a fork of upstream IINA with multi-segment looping support.
 Key bindings (in `IINA Default`):
 
 * `L`: set next loop point (A, B, C, D, ...)
+* `Shift+L`: undo last loop point or remove last segment
 * `Cmd+L`: play segments in sequence from A
 * `Shift+Cmd+L`: clear all loop segments
+
+You can also manage loop segments visually via the sidebar: open Quick Settings (Video/Audio/Sub panel) and switch to the **Loop** tab to see all segments, delete individual ones, or click to seek.
 
 Note: If you previously used IINA and have a custom key binding config selected, switch to `IINA Default` in Settings > Key Bindings to use these defaults.
 

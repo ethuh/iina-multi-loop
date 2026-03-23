@@ -1122,6 +1122,30 @@ class PlayerCore: NSObject {
     }
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
+  }
+
+  func multiLoopUndoPoint() {
+    let result = multiLoop.undoLastPoint()
+    switch result {
+    case .pendingCleared:
+      sendOSD(.multiLoopUndoPending)
+    case .segmentRemoved:
+      sendOSD(.multiLoopSegmentRemoved)
+    case .ignored:
+      return
+    }
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
+  }
+
+  func multiLoopRemoveSegment(at index: Int) {
+    multiLoop.removeSegment(at: index)
+    sendOSD(.multiLoopSegmentRemoved)
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
   }
 
   func multiLoopStartSequence() {
@@ -1136,6 +1160,7 @@ class PlayerCore: NSObject {
     sendOSD(.multiLoopClearAll)
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
   }
 
   func multiLoopHandleTimePosUpdate(_ timePos: Double) {

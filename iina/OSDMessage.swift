@@ -60,6 +60,8 @@ enum OSDMessage {
   case abLoopUpdate(PlaybackInfo.LoopStatus, String)
   case multiLoopPoint
   case multiLoopSegmentAdded
+  case multiLoopUndoPending
+  case multiLoopSegmentRemoved
   case multiLoopSequenceStart
   case multiLoopClearAll
   case stop
@@ -307,6 +309,12 @@ enum OSDMessage {
 
     case .multiLoopSegmentAdded:
       return (NSLocalizedString("osd.multiloop.segment_added", comment: "Multi-Loop: Segment Added"), .normal)
+
+    case .multiLoopUndoPending:
+      return (NSLocalizedString("osd.multiloop.undo_pending", comment: "Multi-Loop: Point Cleared"), .normal)
+
+    case .multiLoopSegmentRemoved:
+      return (NSLocalizedString("osd.multiloop.segment_removed", comment: "Multi-Loop: Segment Removed"), .normal)
 
     case .multiLoopSequenceStart:
       return (NSLocalizedString("osd.multiloop.sequence_start", comment: "Multi-Loop: Sequence"), .normal)

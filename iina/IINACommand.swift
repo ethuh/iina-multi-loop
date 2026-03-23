@@ -38,6 +38,7 @@ enum IINACommand: String {
   case saveDownloadedSub = "save-downloaded-sub"
 
   case multiLoopSetPoint = "multi-loop-set-point"
+  case multiLoopUndoPoint = "multi-loop-undo-point"
   case multiLoopStartSequence = "multi-loop-start-sequence"
   case multiLoopClearAll = "multi-loop-clear-all"
 

@@ -699,6 +699,8 @@ class PlayerWindowController: NSWindowController, NSWindowDelegate {
       menuActionHandler.menuDeleteCurrentFileHard(.dummy)
     case .multiLoopSetPoint:
       player.multiLoopSetPoint()
+    case .multiLoopUndoPoint:
+      player.multiLoopUndoPoint()
     case .multiLoopStartSequence:
       player.multiLoopStartSequence()
     case .multiLoopClearAll:

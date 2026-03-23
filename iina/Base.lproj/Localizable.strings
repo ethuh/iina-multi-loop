@@ -52,6 +52,10 @@
 "quicksetting.hdr" = "HDR";
 "quicksetting.hide" = "Hide";
 "quicksetting.reset_speed" = "Reset speed to 1x";
+"quicksetting.tab.loop" = "Loop";
+
+// MultiLoopViewController
+"multiloop.empty" = "No loop segments";
 
 // EQ Presets
 "eq.preset.flat" = "Flat";
@@ -115,6 +119,8 @@
 "osd.abloop.clear" = "AB-Loop: Cleared";
 "osd.multiloop.point" = "Multi-Loop: Point Set";
 "osd.multiloop.segment_added" = "Multi-Loop: Segment Added";
+"osd.multiloop.undo_pending" = "Multi-Loop: Point Cleared";
+"osd.multiloop.segment_removed" = "Multi-Loop: Segment Removed";
 "osd.multiloop.sequence_start" = "Multi-Loop: Sequence";
 "osd.multiloop.clear_all" = "Multi-Loop: Cleared";
 "osd.stop" = "Stop";

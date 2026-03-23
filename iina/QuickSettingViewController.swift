@@ -42,9 +42,10 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
     case video
     case audio
     case sub
+    case loop
 
     init(buttonTag: Int) {
-      self = [.video, .audio, .sub][at: buttonTag] ?? .video
+      self = [.video, .audio, .sub, .loop][at: buttonTag] ?? .video
     }
 
     init?(name: String) {
@@ -55,6 +56,8 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
         self = .audio
       case "sub":
         self = .sub
+      case "loop":
+        self = .loop
       default:
         self = .video
       }
@@ -65,6 +68,7 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
       case .video: return 0
       case .audio: return 1
       case .sub: return 2
+      case .loop: return 3
       }
     }
 
@@ -73,6 +77,7 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
       case .video: return "video"
       case .audio: return "audio"
       case .sub: return "sub"
+      case .loop: return "loop"
       }
     }
   }
@@ -107,6 +112,10 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
   @IBOutlet weak var tabView: NSTabView!
 
   @IBOutlet weak var buttonTopConstraint: NSLayoutConstraint!
+
+  // Loop tab (programmatic, not from xib)
+  private var loopTabBtn: NSButton!
+  private var multiLoopVC: MultiLoopViewController?
 
   @IBOutlet weak var videoTableView: NSTableView!
   @IBOutlet weak var audioTableView: NSTableView!
@@ -221,6 +230,9 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
     for (view, item) in zip(tabScrollViews, tabView.tabViewItems) {
       item.view = view
     }
+
+    // Add Loop tab programmatically
+    setupLoopTab()
 
     withAllTableViews { (view, _) in
       view.delegate = self
@@ -537,6 +549,37 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
     }
   }
 
+  private func setupLoopTab() {
+    guard let tabBtnStackView = videoTabBtn.superview as? NSStackView else { return }
+
+    // Create the loop tab button matching the style of existing tab buttons
+    let btn = NSButton()
+    btn.translatesAutoresizingMaskIntoConstraints = false
+    btn.isBordered = false
+    btn.bezelStyle = .regularSquare
+    btn.imagePosition = .imageLeading
+    if #available(macOS 11, *) {
+      btn.image = NSImage(systemSymbolName: "repeat", accessibilityDescription: "Loop")
+    }
+    btn.title = NSLocalizedString("quicksetting.tab.loop", comment: "Loop")
+    btn.font = videoTabBtn.font
+    btn.tag = TabViewType.loop.buttonTag
+    btn.target = self
+    btn.action = #selector(tabBtnAction(_:))
+    btn.contentTintColor = .sidebarTabTint
+    loopTabBtn = btn
+    tabBtnStackView.addArrangedSubview(btn)
+
+    // Create the loop tab content
+    let vc = MultiLoopViewController(player: player)
+    multiLoopVC = vc
+    addChild(vc)
+
+    let loopTabItem = NSTabViewItem()
+    loopTabItem.view = vc.view
+    tabView.addTabViewItem(loopTabItem)
+  }
+
   private func switchToTab(_ tab: TabViewType) {
     guard isViewLoaded else { return }
     currentTab = tab
@@ -547,9 +590,11 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
 
   private func updateTabActiveStatus() {
     let currentTag = currentTab.buttonTag
-    [videoTabBtn, audioTabBtn, subTabBtn].forEach { btn in
-      let isActive = currentTag == btn!.tag
-      btn!.contentTintColor = isActive ? .sidebarTabTintActive : .sidebarTabTint
+    let allBtns: [NSButton?] = [videoTabBtn, audioTabBtn, subTabBtn, loopTabBtn]
+    allBtns.forEach { btn in
+      guard let btn else { return }
+      let isActive = currentTag == btn.tag
+      btn.contentTintColor = isActive ? .sidebarTabTintActive : .sidebarTabTint
     }
   }
 
@@ -568,7 +613,13 @@ class QuickSettingViewController: NSViewController, NSTableViewDataSource, NSTab
       subTableView.reloadData()
       secSubTableView.reloadData()
       updateSubTabControl()
+    case .loop:
+      multiLoopVC?.reload()
     }
+  }
+
+  func reloadLoopTab() {
+    multiLoopVC?.reload()
   }
 
   func setHdrAvailability(to available: Bool) {

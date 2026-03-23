@@ -13,6 +13,12 @@ enum MultiLoopSetPointResult {
   case segmentAdded
 }
 
+enum MultiLoopUndoResult {
+  case ignored
+  case pendingCleared
+  case segmentRemoved(Int)
+}
+
 struct MultiLoopSegment: Codable, Equatable {
   var start: Double
   var end: Double
@@ -129,6 +135,30 @@ final class MultiLoopController {
     if deleteFromDisk, let key = player.info.watchLaterKey {
       MultiLoopStore.delete(watchLaterKey: key)
     }
+  }
+
+  func undoLastPoint() -> MultiLoopUndoResult {
+    if pendingStart != nil {
+      pendingStart = nil
+      return .pendingCleared
+    }
+    guard !segments.isEmpty else { return .ignored }
+    let idx = segments.count - 1
+    segments.removeLast()
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    save()
+    updateObservationForSegments()
+    return .segmentRemoved(idx)
+  }
+
+  func removeSegment(at index: Int) {
+    guard segments.indices.contains(index) else { return }
+    segments.remove(at: index)
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    save()
+    updateObservationForSegments()
   }
 
   func setPointAtCurrentTime() -> MultiLoopSetPointResult {
