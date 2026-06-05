@@ -38,3 +38,38 @@ Created root CLAUDE.md with repository-specific build commands, architecture bou
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Bootstrap Trellis guidelines
+
+**Date**: 2026-06-06
+**Task**: Bootstrap Trellis guidelines
+**Branch**: `develop`
+
+### Summary
+
+Installed Trellis project configuration and populated backend/frontend specs with IINA-specific development guidelines.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7f2a1848` | (see git log) |
+| `cdeaa2ea` | (see git log) |
+| `c792f9d8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
