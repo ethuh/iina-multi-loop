@@ -1,0 +1,7 @@
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Check AppKit programmatic UI, target/action setup, table drag/drop preservation, and localization patterns."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Verify UI quality, accessibility strings, Base/en-only localization, and targeted build/manual verification expectations."}
+{"file":".trellis/spec/frontend/state-management.md","reason":"Verify sorting routes through PlayerCore, refreshes slider/sidebar state, and resets stale sequence/reorder tracking."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Check selector visibility, optional guards, availability checks, and Codable segment state consistency."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Verify sorted order is persisted via existing watch-later JSON path without changing storage semantics."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Check invalid/no-op cases are guarded and persistence behavior remains non-fatal."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Check ownership and lifecycle conventions for multi-loop controller/UI changes."}

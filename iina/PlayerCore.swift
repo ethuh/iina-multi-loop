@@ -1156,6 +1156,13 @@ class PlayerCore: NSObject {
     return true
   }
 
+  func multiLoopSortSegmentsByStartTime() {
+    guard multiLoop.sortSegmentsByStartTime() else { return }
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
+  }
+
   func multiLoopStartSequence() {
     if multiLoop.startSequenceFromFirstSegment() {
       sendOSD(.multiLoopSequenceStart)
