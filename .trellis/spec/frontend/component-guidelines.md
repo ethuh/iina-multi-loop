@@ -23,6 +23,7 @@
 ## Delegates and data sources
 
 - Delegate/data-source conformance is commonly placed in an extension below the main class. `MultiLoopViewController` implements `NSTableViewDataSource` and `NSTableViewDelegate` in a `// MARK` extension.
+- For table row reordering, use standard `NSTableView` drag/drop APIs (`registerForDraggedTypes`, `setDraggingSourceOperationMask`, `pasteboardWriterForRow`, `validateDrop`, `acceptDrop`) rather than custom gesture recognizers. Validate local drag source identity, force insertion-style drops with `.above`, and reject no-op insertion rows.
 - Larger controllers may conform in the class declaration when that matches existing code, as `QuickSettingViewController` does for `NSTableViewDataSource`, `NSTableViewDelegate`, and `SidebarViewController`.
 
 ## Localization

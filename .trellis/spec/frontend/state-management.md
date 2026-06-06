@@ -12,8 +12,10 @@ There is no frontend state-management library. State is held in controllers, `Pl
 ## Feature state
 
 - Keep feature logic separate from feature UI. The current multi-loop feature keeps segment state, persistence, and seeking behavior in `iina/MultiLoop.swift`, while row rendering and user actions live in `iina/MultiLoopViewController.swift`.
-- Expose small methods on feature controllers for UI actions. `MultiLoopController` provides `setPointAtCurrentTime()`, `undoLastPoint()`, `removeSegment(at:)`, `startSequenceFromFirstSegment()`, and `markerTimes()`.
+- Expose small methods on feature controllers for UI actions. `MultiLoopController` provides `setPointAtCurrentTime()`, `undoLastPoint()`, `removeSegment(at:)`, `moveSegment(from:to:)`, `startSequenceFromFirstSegment()`, and `markerTimes()`.
+- Route UI-initiated playback-feature mutations through `PlayerCore` wrappers when the existing feature does so, so window/slider/sidebar refresh stays centralized. For multi-loop reorder, `MultiLoopViewController` calls `PlayerCore.multiLoopMoveSegment(from:to:)`, which delegates to `MultiLoopController.moveSegment(from:to:)`.
 - Persist feature state from the feature controller, not from table-cell rendering or low-level controls.
+- When reordering active sequence state, keep the user-facing mode unchanged unless requirements say otherwise, but reset stale tracking indices/timestamps before saving so future boundary handling reads the new source-of-truth order.
 
 ## Preferences
 
