@@ -73,3 +73,37 @@ Installed Trellis project configuration and populated backend/frontend specs wit
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Add loop segment drag reordering
+
+**Date**: 2026-06-06
+**Task**: Add loop segment drag reordering
+**Branch**: `develop`
+
+### Summary
+
+Added AppKit drag-and-drop reordering for completed multi-loop sidebar segments, preserved active sequence playback with reset tracking, persisted reordered segment order, and updated Trellis specs for the new pattern.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `02ff3a6f` | (see git log) |
+| `e86505fe` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
