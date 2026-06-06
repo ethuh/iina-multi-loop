@@ -161,6 +161,23 @@ final class MultiLoopController {
     updateObservationForSegments()
   }
 
+  func moveSegment(from sourceIndex: Int, to insertionIndex: Int) -> Bool {
+    guard segments.indices.contains(sourceIndex) else { return false }
+    guard insertionIndex >= 0, insertionIndex <= segments.count else { return false }
+
+    let adjustedDestination = insertionIndex > sourceIndex ? insertionIndex - 1 : insertionIndex
+    guard adjustedDestination != sourceIndex else { return false }
+    guard adjustedDestination >= 0, adjustedDestination <= segments.count - 1 else { return false }
+
+    let segment = segments.remove(at: sourceIndex)
+    segments.insert(segment, at: adjustedDestination)
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    save()
+    updateObservationForSegments()
+    return true
+  }
+
   func setPointAtCurrentTime() -> MultiLoopSetPointResult {
     guard player.info.state.active else { return .ignored }
     let now = player.mpv.getDouble(MPVProperty.timePos)

@@ -1148,6 +1148,14 @@ class PlayerCore: NSObject {
     mainWindow.quickSettingView.reloadLoopTab()
   }
 
+  func multiLoopMoveSegment(from sourceIndex: Int, to insertionIndex: Int) -> Bool {
+    guard multiLoop.moveSegment(from: sourceIndex, to: insertionIndex) else { return false }
+    guard mainWindow.loaded, info.state.active else { return true }
+    mainWindow.syncSlider()
+    mainWindow.quickSettingView.reloadLoopTab()
+    return true
+  }
+
   func multiLoopStartSequence() {
     if multiLoop.startSequenceFromFirstSegment() {
       sendOSD(.multiLoopSequenceStart)

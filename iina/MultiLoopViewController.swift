@@ -14,6 +14,8 @@ class MultiLoopViewController: NSViewController {
   private var scrollView: NSScrollView!
   private var emptyLabel: NSTextField!
 
+  private let segmentDragType = NSPasteboard.PasteboardType("com.colliderli.iina.multiloop.segment")
+
   init(player: PlayerCore) {
     self.player = player
     super.init(nibName: nil, bundle: nil)
@@ -37,6 +39,8 @@ class MultiLoopViewController: NSViewController {
     tableView.dataSource = self
     tableView.selectionHighlightStyle = .regular
     tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+    tableView.registerForDraggedTypes([segmentDragType])
+    tableView.setDraggingSourceOperationMask(.move, forLocal: true)
 
     let timeColumn = NSTableColumn(identifier: .init("time"))
     timeColumn.title = ""
@@ -190,5 +194,58 @@ extension MultiLoopViewController: NSTableViewDataSource, NSTableViewDelegate {
       player.seek(absoluteSecond: segments[row].normalized.start)
     }
     return true
+  }
+
+  func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
+    guard player.multiLoop.segments.indices.contains(row) else { return nil }
+
+    let item = NSPasteboardItem()
+    item.setString(String(row), forType: segmentDragType)
+    return item
+  }
+
+  func tableView(_ tableView: NSTableView,
+                 validateDrop info: NSDraggingInfo,
+                 proposedRow row: Int,
+                 proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+    guard dropOperation != .on || player.multiLoop.segments.indices.contains(row) else { return [] }
+    guard sourceRow(from: info, in: tableView).flatMap({ validatedInsertionRow(row, sourceRow: $0) }) != nil else { return [] }
+
+    if dropOperation != .above {
+      tableView.setDropRow(row, dropOperation: .above)
+    }
+    return .move
+  }
+
+  func tableView(_ tableView: NSTableView,
+                 acceptDrop info: NSDraggingInfo,
+                 row: Int,
+                 dropOperation: NSTableView.DropOperation) -> Bool {
+    guard let sourceRow = sourceRow(from: info, in: tableView),
+          let insertionRow = validatedInsertionRow(row, sourceRow: sourceRow) else { return false }
+
+    let destinationRow = insertionRow > sourceRow ? insertionRow - 1 : insertionRow
+    guard player.multiLoopMoveSegment(from: sourceRow, to: insertionRow) else { return false }
+
+    reload()
+    tableView.selectRowIndexes(IndexSet(integer: destinationRow), byExtendingSelection: false)
+    tableView.scrollRowToVisible(destinationRow)
+    return true
+  }
+
+  private func sourceRow(from draggingInfo: NSDraggingInfo, in tableView: NSTableView) -> Int? {
+    guard draggingInfo.draggingSource as? NSTableView === tableView,
+          let rowString = draggingInfo.draggingPasteboard.string(forType: segmentDragType),
+          let row = Int(rowString),
+          player.multiLoop.segments.indices.contains(row) else { return nil }
+    return row
+  }
+
+  private func validatedInsertionRow(_ row: Int, sourceRow: Int) -> Int? {
+    let completedCount = player.multiLoop.segments.count
+    guard row >= 0, row <= completedCount else { return nil }
+    guard player.multiLoop.segments.indices.contains(sourceRow) else { return nil }
+    guard row != sourceRow, row != sourceRow + 1 else { return nil }
+    return row
   }
 }
