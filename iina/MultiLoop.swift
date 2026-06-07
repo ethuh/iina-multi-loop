@@ -196,6 +196,25 @@ final class MultiLoopController {
     return true
   }
 
+  func sortSegmentsByStartTime() -> Bool {
+    guard segments.count > 1 else { return false }
+    let sortedSegments = segments.enumerated().sorted { lhs, rhs in
+      let lhsStart = lhs.element.normalized.start
+      let rhsStart = rhs.element.normalized.start
+      if lhsStart == rhsStart {
+        return lhs.offset < rhs.offset
+      }
+      return lhsStart < rhsStart
+    }.map { $0.element.normalized }
+    guard sortedSegments != segments else { return false }
+    segments = sortedSegments
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    save()
+    updateObservationForSegments()
+    return true
+  }
+
   func setPointAtCurrentTime() -> MultiLoopSetPointResult {
     guard player.info.state.active else { return .ignored }
     let now = player.mpv.getDouble(MPVProperty.timePos)

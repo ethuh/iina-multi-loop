@@ -1,0 +1,7 @@
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Programmatic AppKit UI, target/action wiring, table drag/drop conventions, and localization expectations for MultiLoopViewController changes."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"UI quality, accessibility, localization, and verification guidance for the Loop tab sort button."}
+{"file":".trellis/spec/frontend/state-management.md","reason":"Multi-loop UI mutations should route through PlayerCore and reset stale reorder/sequence tracking state while refreshing UI."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Swift/AppKit type-safety guidance for selectors, Codable multi-loop state, optional guards, and availability checks."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Multi-loop order persistence uses watch-later JSON state and should keep existing atomic save/load behavior."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Guard invalid playback state and keep recoverable multi-loop persistence failures non-fatal."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Ownership and lifecycle conventions for MultiLoopController and MultiLoopViewController references."}

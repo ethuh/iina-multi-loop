@@ -10,6 +10,7 @@ import Cocoa
 class MultiLoopViewController: NSViewController {
 
   private weak var player: PlayerCore!
+  private var sortButton: NSButton!
   private var tableView: NSTableView!
   private var scrollView: NSScrollView!
   private var emptyLabel: NSTextField!
@@ -29,6 +30,16 @@ class MultiLoopViewController: NSViewController {
   override func loadView() {
     let container = NSView()
     container.autoresizingMask = [.width, .height]
+
+    let sortTitle = NSLocalizedString("multiloop.sort_by_start", comment: "Sort loop segments by start time")
+    sortButton = NSButton(title: sortTitle, target: self, action: #selector(sortSegmentsByStartTime(_:)))
+    sortButton.translatesAutoresizingMaskIntoConstraints = false
+    sortButton.bezelStyle = .rounded
+    sortButton.controlSize = .small
+    sortButton.font = .systemFont(ofSize: 11)
+    sortButton.toolTip = NSLocalizedString("multiloop.sort_by_start.tooltip", comment: "Sort loop segments by start time tooltip")
+    sortButton.setAccessibilityLabel(sortTitle)
+    container.addSubview(sortButton)
 
     // Table view
     tableView = NSTableView()
@@ -89,7 +100,9 @@ class MultiLoopViewController: NSViewController {
     container.addSubview(emptyLabel)
 
     NSLayoutConstraint.activate([
-      scrollView.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+      sortButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+      sortButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
+      scrollView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 8),
       scrollView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
       scrollView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
       scrollView.bottomAnchor.constraint(equalTo: enforcementToggleButton.topAnchor, constant: -8),
@@ -119,6 +132,7 @@ class MultiLoopViewController: NSViewController {
     let empty = player.multiLoop.segments.isEmpty && player.multiLoop.pendingStart == nil
     emptyLabel.isHidden = !empty
     scrollView.isHidden = empty
+    sortButton.isEnabled = player.multiLoop.segments.count > 1
   }
 
   private func updateEnforcementToggleButton() {
@@ -148,6 +162,11 @@ class MultiLoopViewController: NSViewController {
   @objc private func toggleEnforcement(_ sender: NSButton) {
     player.multiLoopSetEnforcementEnabled(sender.state == .on)
     updateEnforcementToggleButton()
+  }
+
+  @objc private func sortSegmentsByStartTime(_ sender: NSButton) {
+    player.multiLoopSortSegmentsByStartTime()
+    reload()
   }
 
   @objc private func deleteSegment(_ sender: NSButton) {

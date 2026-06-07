@@ -60,6 +60,8 @@
 "multiloop.enforcement.disabled" = "Multi-Loop Disabled";
 "multiloop.enforcement.toggle" = "Toggle multi-loop enforcement";
 "multiloop.enforcement.tooltip" = "Temporarily disable multi-loop playback without deleting segments.";
+"multiloop.sort_by_start" = "Sort by Start";
+"multiloop.sort_by_start.tooltip" = "Sort loop segments by start time";
 
 // EQ Presets
 "eq.preset.flat" = "Flat";
