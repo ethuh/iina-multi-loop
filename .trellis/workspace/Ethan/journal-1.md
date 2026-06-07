@@ -107,3 +107,36 @@ Added AppKit drag-and-drop reordering for completed multi-loop sidebar segments,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Temporary multi-loop disable toggle (worktree)
+
+**Date**: 2026-06-07
+**Task**: Temporary multi-loop disable toggle (worktree)
+**Branch**: `worktree-temporary-multiloop-disable-button`
+
+### Summary
+
+Implemented a runtime multi-loop enforcement toggle in the Loop sidebar (MultiLoopController.enforcementEnabled gating handleTimePosUpdate; PlayerCore.multiLoopSetEnforcementEnabled wrapper; programmatic toggle button; OSD + Base/en strings). Preserves segments, pending start, sequence order, and markers. Done in isolated worktree worktree-temporary-multiloop-disable-button; trellis-check passed (build skipped, deps/lib missing). Feature commit 0f169236; task archived. Merge to develop left to the user.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0f169236` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
