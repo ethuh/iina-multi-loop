@@ -64,6 +64,8 @@ enum OSDMessage {
   case multiLoopSegmentRemoved
   case multiLoopSequenceStart
   case multiLoopClearAll
+  case multiLoopEnforcementEnabled
+  case multiLoopEnforcementDisabled
   case stop
   case chapter(String)
   case track(MPVTrack)
@@ -321,6 +323,12 @@ enum OSDMessage {
 
     case .multiLoopClearAll:
       return (NSLocalizedString("osd.multiloop.clear_all", comment: "Multi-Loop: Cleared"), .normal)
+
+    case .multiLoopEnforcementEnabled:
+      return (NSLocalizedString("osd.multiloop.enforcement_enabled", comment: "Multi-Loop: Enabled"), .normal)
+
+    case .multiLoopEnforcementDisabled:
+      return (NSLocalizedString("osd.multiloop.enforcement_disabled", comment: "Multi-Loop: Disabled"), .normal)
 
     case .stop:
       return (NSLocalizedString("osd.stop", comment: "Stop"), .normal)

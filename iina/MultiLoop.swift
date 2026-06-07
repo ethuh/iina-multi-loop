@@ -86,6 +86,7 @@ final class MultiLoopController {
   private(set) var pendingStart: Double?
 
   private(set) var sequenceModeEnabled: Bool = false
+  private(set) var enforcementEnabled: Bool = true
 
   private var lastTickTime: CFTimeInterval = 0
   private var seekCooldownUntil: CFTimeInterval = 0
@@ -109,6 +110,7 @@ final class MultiLoopController {
     segments.removeAll()
     pendingStart = nil
     sequenceModeEnabled = false
+    enforcementEnabled = true
     lastTickTime = 0
     seekCooldownUntil = 0
     lastSegmentIndex = nil
@@ -135,6 +137,22 @@ final class MultiLoopController {
     if deleteFromDisk, let key = player.info.watchLaterKey {
       MultiLoopStore.delete(watchLaterKey: key)
     }
+  }
+
+  @discardableResult
+  func setEnforcementEnabled(_ enabled: Bool) -> Bool {
+    guard enforcementEnabled != enabled else { return false }
+    enforcementEnabled = enabled
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    seekCooldownUntil = 0
+    return true
+  }
+
+  @discardableResult
+  func toggleEnforcementEnabled() -> Bool {
+    setEnforcementEnabled(!enforcementEnabled)
+    return enforcementEnabled
   }
 
   func undoLastPoint() -> MultiLoopUndoResult {
@@ -232,6 +250,11 @@ final class MultiLoopController {
   func handleTimePosUpdate(_ timePos: Double) {
     guard !segments.isEmpty, player.info.state.active else { return }
     guard timePos.isFinite else { return }
+    guard enforcementEnabled else {
+      lastSegmentIndex = nil
+      lastTimePos = timePos
+      return
+    }
 
     // Throttle to avoid excessive work.
     let now = CACurrentMediaTime()

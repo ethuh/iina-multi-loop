@@ -1171,6 +1171,13 @@ class PlayerCore: NSObject {
     mainWindow.quickSettingView.reloadLoopTab()
   }
 
+  func multiLoopSetEnforcementEnabled(_ enabled: Bool) {
+    guard multiLoop.setEnforcementEnabled(enabled) else { return }
+    sendOSD(enabled ? .multiLoopEnforcementEnabled : .multiLoopEnforcementDisabled)
+    guard mainWindow.loaded, info.state.active else { return }
+    mainWindow.quickSettingView.reloadLoopTab()
+  }
+
   func multiLoopHandleTimePosUpdate(_ timePos: Double) {
     multiLoop.handleTimePosUpdate(timePos)
   }

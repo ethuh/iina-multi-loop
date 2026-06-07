@@ -56,6 +56,10 @@
 
 // MultiLoopViewController
 "multiloop.empty" = "No loop segments";
+"multiloop.enforcement.enabled" = "Multi-Loop Enabled";
+"multiloop.enforcement.disabled" = "Multi-Loop Disabled";
+"multiloop.enforcement.toggle" = "Toggle multi-loop enforcement";
+"multiloop.enforcement.tooltip" = "Temporarily disable multi-loop playback without deleting segments.";
 
 // EQ Presets
 "eq.preset.flat" = "Flat";
@@ -123,6 +127,8 @@
 "osd.multiloop.segment_removed" = "Multi-Loop: Segment Removed";
 "osd.multiloop.sequence_start" = "Multi-Loop: Sequence";
 "osd.multiloop.clear_all" = "Multi-Loop: Cleared";
+"osd.multiloop.enforcement_enabled" = "Multi-Loop: Enabled";
+"osd.multiloop.enforcement_disabled" = "Multi-Loop: Disabled";
 "osd.stop" = "Stop";
 "osd.chapter" = "Chapter: %@";
 "osd.subtitle_scale" = "Subtitle Scale: %@x";
