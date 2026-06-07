@@ -140,3 +140,36 @@ Implemented a runtime multi-loop enforcement toggle in the Loop sidebar (MultiLo
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Auto-sort loop segments button (trellis close-out)
+
+**Date**: 2026-06-07
+**Task**: Auto-sort loop segments button (trellis close-out)
+**Branch**: `worktree-temporary-multiloop-disable-button`
+
+### Summary
+
+Close out trellis for the loop-segment auto-sort feature whose code (commit 8f9169b4) had already landed on develop without archive/journal. Feature adds a 'Sort by Start' button to the Loop sidebar that reorders multi-loop segments by start time, routed PlayerCore.multiLoopSortSegmentsByStartTime -> MultiLoop.sortSegmentsByStartTime, with Base/en localized strings. This session archived task 06-06-loop-ui-auto-sort-button and recorded this journal so develop carries both code and trellis records. Integrated after the temporary-multiloop-disable-button merge to avoid journal session collisions.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8f9169b4` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
