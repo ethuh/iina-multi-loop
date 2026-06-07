@@ -14,7 +14,6 @@ class MultiLoopViewController: NSViewController {
   private var tableView: NSTableView!
   private var scrollView: NSScrollView!
   private var emptyLabel: NSTextField!
-  private var enforcementToggleButton: NSButton!
 
   private let segmentDragType = NSPasteboard.PasteboardType("com.colliderli.iina.multiloop.segment")
 
@@ -77,20 +76,6 @@ class MultiLoopViewController: NSViewController {
     scrollView.layer?.cornerRadius = 4
     container.addSubview(scrollView)
 
-    enforcementToggleButton = NSButton(title: "", target: self, action: #selector(toggleEnforcement(_:)))
-    enforcementToggleButton.translatesAutoresizingMaskIntoConstraints = false
-    enforcementToggleButton.bezelStyle = .rounded
-    enforcementToggleButton.setButtonType(.toggle)
-    enforcementToggleButton.font = .systemFont(ofSize: 12)
-    if #available(macOS 11, *) {
-      enforcementToggleButton.image = NSImage(
-        systemSymbolName: "repeat.circle",
-        accessibilityDescription: NSLocalizedString("multiloop.enforcement.toggle", comment: "Toggle multi-loop enforcement")
-      )
-      enforcementToggleButton.imagePosition = .imageLeading
-    }
-    container.addSubview(enforcementToggleButton)
-
     // Empty state label
     emptyLabel = NSTextField(labelWithString: NSLocalizedString("multiloop.empty", comment: "No loop segments"))
     emptyLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -105,10 +90,7 @@ class MultiLoopViewController: NSViewController {
       scrollView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 8),
       scrollView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
       scrollView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-      scrollView.bottomAnchor.constraint(equalTo: enforcementToggleButton.topAnchor, constant: -8),
-      enforcementToggleButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
-      enforcementToggleButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-      enforcementToggleButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8),
+      scrollView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8),
       emptyLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
       emptyLabel.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor),
     ])
@@ -118,14 +100,13 @@ class MultiLoopViewController: NSViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    preferredContentSize = NSSize(width: 300, height: 340)
     updateEmptyState()
-    updateEnforcementToggleButton()
   }
 
   func reload() {
     tableView.reloadData()
     updateEmptyState()
-    updateEnforcementToggleButton()
   }
 
   private func updateEmptyState() {
@@ -133,18 +114,6 @@ class MultiLoopViewController: NSViewController {
     emptyLabel.isHidden = !empty
     scrollView.isHidden = empty
     sortButton.isEnabled = player.multiLoop.segments.count > 1
-  }
-
-  private func updateEnforcementToggleButton() {
-    let isEnabled = player.multiLoop.enforcementEnabled
-    enforcementToggleButton.state = isEnabled ? .on : .off
-    enforcementToggleButton.title = isEnabled
-      ? NSLocalizedString("multiloop.enforcement.enabled", comment: "Multi-loop enforcement enabled")
-      : NSLocalizedString("multiloop.enforcement.disabled", comment: "Multi-loop enforcement disabled")
-    enforcementToggleButton.toolTip = NSLocalizedString(
-      "multiloop.enforcement.tooltip",
-      comment: "Temporarily disable or enable multi-loop enforcement"
-    )
   }
 
   private func formatTime(_ seconds: Double) -> String {
@@ -157,11 +126,6 @@ class MultiLoopViewController: NSViewController {
       return String(format: "%d:%02d:%02d.%02d", h, m, s, ms)
     }
     return String(format: "%02d:%02d.%02d", m, s, ms)
-  }
-
-  @objc private func toggleEnforcement(_ sender: NSButton) {
-    player.multiLoopSetEnforcementEnabled(sender.state == .on)
-    updateEnforcementToggleButton()
   }
 
   @objc private func sortSegmentsByStartTime(_ sender: NSButton) {

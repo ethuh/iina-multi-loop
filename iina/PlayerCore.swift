@@ -1122,7 +1122,7 @@ class PlayerCore: NSObject {
     }
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopUndoPoint() {
@@ -1137,7 +1137,7 @@ class PlayerCore: NSObject {
     }
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopRemoveSegment(at index: Int) {
@@ -1145,14 +1145,14 @@ class PlayerCore: NSObject {
     sendOSD(.multiLoopSegmentRemoved)
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopMoveSegment(from sourceIndex: Int, to insertionIndex: Int) -> Bool {
     guard multiLoop.moveSegment(from: sourceIndex, to: insertionIndex) else { return false }
     guard mainWindow.loaded, info.state.active else { return true }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
     return true
   }
 
@@ -1160,7 +1160,7 @@ class PlayerCore: NSObject {
     guard multiLoop.sortSegmentsByStartTime() else { return }
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopStartSequence() {
@@ -1175,14 +1175,14 @@ class PlayerCore: NSObject {
     sendOSD(.multiLoopClearAll)
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopSetEnforcementEnabled(_ enabled: Bool) {
     guard multiLoop.setEnforcementEnabled(enabled) else { return }
     sendOSD(enabled ? .multiLoopEnforcementEnabled : .multiLoopEnforcementDisabled)
     guard mainWindow.loaded, info.state.active else { return }
-    mainWindow.quickSettingView.reloadLoopTab()
+    mainWindow.refreshMultiLoopUI()
   }
 
   func multiLoopHandleTimePosUpdate(_ timePos: Double) {
@@ -2109,6 +2109,7 @@ class PlayerCore: NSObject {
     multiLoop.updateObservationForSegments()
     if mainWindow.loaded, info.state.active {
       mainWindow.syncSlider()
+      mainWindow.refreshMultiLoopUI()
     }
 
     refreshSyncUITimer()

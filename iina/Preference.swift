@@ -727,12 +727,26 @@ struct Preference {
     case subTrack
     case screenshot
     case plugins
+    case multiLoopToggle
+    case multiLoopManage
 
     func image() -> NSImage {
       func makeSymbol(_ names: [String], _ fallbackImage: NSImage.Name) -> NSImage {
         guard #available(macOS 14.0, *) else { return NSImage(named: fallbackImage)! }
         let configuration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
         return NSImage.findSFSymbol(names, withConfiguration: configuration)
+      }
+      // Multi-loop buttons are added by this fork and ship no bundled icon assets, so prefer an
+      // SF Symbol (macOS 11+) and fall back to a stock AppKit template image on macOS 10.15.
+      func makeSystemSymbol(_ symbolName: String, fallback fallbackName: NSImage.Name) -> NSImage {
+        if #available(macOS 11.0, *) {
+          let configuration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+          if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)?
+            .withSymbolConfiguration(configuration) {
+            return image
+          }
+        }
+        return NSImage(named: fallbackName) ?? NSImage()
       }
       switch self {
       case .settings: return makeSymbol(["gearshape"], NSImage.actionTemplateName)
@@ -743,6 +757,8 @@ struct Preference {
       case .subTrack: return makeSymbol(["captions.bubble.fill"], "sub-track")
       case .screenshot: return makeSymbol(["camera.shutter.button"], "screenshot")
       case .plugins: return makeSymbol(["puzzlepiece.extension"], "plugin")
+      case .multiLoopToggle: return makeSystemSymbol("repeat", fallback: NSImage.refreshTemplateName)
+      case .multiLoopManage: return makeSystemSymbol("repeat.circle", fallback: NSImage.actionTemplateName)
       }
     }
 
@@ -757,6 +773,8 @@ struct Preference {
       case .subTrack: key = "sub_track"
       case .screenshot: key = "screenshot"
       case .plugins: key = "plugins"
+      case .multiLoopToggle: key = "multiloop_toggle"
+      case .multiLoopManage: key = "multiloop_manage"
       }
       return NSLocalizedString("osc_toolbar.\(key)", comment: key)
     }
@@ -836,7 +854,7 @@ struct Preference {
     .controlBarStickToCenter: true,
     .controlBarAutoHideTimeout: Float(2.5),
     .enableControlBarAutoHide: true,
-    .controlBarToolbarButtons: [ToolBarButton.plugins.rawValue, ToolBarButton.pip.rawValue, ToolBarButton.playlist.rawValue, ToolBarButton.settings.rawValue],
+    .controlBarToolbarButtons: [ToolBarButton.plugins.rawValue, ToolBarButton.pip.rawValue, ToolBarButton.playlist.rawValue, ToolBarButton.multiLoopToggle.rawValue, ToolBarButton.multiLoopManage.rawValue, ToolBarButton.settings.rawValue],
     .oscPosition: OSCPosition.floating.rawValue,
     .disablePlaySliderScrolling: false,
     .disableVolumeSliderScrolling: false,

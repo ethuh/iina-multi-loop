@@ -741,6 +741,9 @@ class MainWindowController: PlayerWindowController {
       let button = NSButton()
       OSCToolbarButton.setStyle(of: button, buttonType: buttonType, reducedWidth: buttons.count > 4)
       button.action = #selector(self.toolBarButtonAction(_:))
+      if buttonType == .multiLoopToggle {
+        button.contentTintColor = multiLoopToggleTintColor()
+      }
       fragToolbarView.addView(button, in: .trailing)
     }
   }
@@ -3296,6 +3299,61 @@ class MainWindowController: PlayerWindowController {
       player.screenshot()
     case .plugins:
       showPluginSidebar(tab: nil)
+    case .multiLoopToggle:
+      player.multiLoopSetEnforcementEnabled(!player.multiLoop.enforcementEnabled)
+      refreshMultiLoopUI()
+    case .multiLoopManage:
+      showMultiLoopPanel(from: sender)
+    }
+  }
+
+  // MARK: - Multi-loop OSC controls
+
+  /// Management panel migrated from the former Quick Settings "Loop" tab; shown as a popover
+  /// anchored to the OSC management button.
+  private var multiLoopPopover: NSPopover?
+  private var multiLoopPanelVC: MultiLoopViewController?
+
+  /// Enforcement on → default tint; temporarily disabled → dimmed so the OSC button reads as inactive.
+  private func multiLoopToggleTintColor() -> NSColor? {
+    return player.multiLoop.enforcementEnabled ? nil : .disabledControlTextColor
+  }
+
+  private func showMultiLoopPanel(from sender: NSView) {
+    let popover: NSPopover
+    if let existing = multiLoopPopover {
+      popover = existing
+    } else {
+      let vc = MultiLoopViewController(player: player)
+      let newPopover = NSPopover()
+      newPopover.contentViewController = vc
+      newPopover.behavior = .transient
+      multiLoopPanelVC = vc
+      multiLoopPopover = newPopover
+      popover = newPopover
+    }
+    if popover.isShown {
+      popover.performClose(sender)
+    } else {
+      // On first open the view isn't loaded yet; viewDidLoad refreshes from live state. On reopen the
+      // view is already loaded, so reload to pick up segment changes made while the popover was closed.
+      if multiLoopPanelVC?.isViewLoaded == true {
+        multiLoopPanelVC?.reload()
+      }
+      popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .maxY)
+    }
+  }
+
+  /// Refreshes multi-loop UI living in the OSC: the enforcement toggle's tint and, when shown, the
+  /// management popover. Replaces the former `quickSettingView.reloadLoopTab()` refresh path.
+  func refreshMultiLoopUI() {
+    guard loaded else { return }
+    let toggleTag = Preference.ToolBarButton.multiLoopToggle.rawValue
+    for case let button as NSButton in fragToolbarView.views where button.tag == toggleTag {
+      button.contentTintColor = multiLoopToggleTintColor()
+    }
+    if multiLoopPopover?.isShown == true {
+      multiLoopPanelVC?.reload()
     }
   }
 

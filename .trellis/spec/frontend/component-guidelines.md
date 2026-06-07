@@ -13,6 +13,18 @@
 - Use `@IBAction` for XIB-wired actions. `PrefGeneralViewController.chooseScreenshotPathAction(_:)` opens a panel and stores the selected path.
 - Programmatic controls should set `target` and `action` explicitly. `MultiLoopViewController.deleteSegment(_:)` is connected to per-row delete buttons by setting `button.target = self` and `button.action = #selector(deleteSegment(_:))`.
 
+## OSC toolbar buttons
+
+Adding a new On-Screen-Controller toolbar button (`Preference.ToolBarButton`) means updating **all** of these in sync — a missed one silently drops the button from a surface:
+
+- `Preference.ToolBarButton` enum case — append at the end so existing persisted `rawValue`s in `.controlBarToolbarButtons` stay stable.
+- `ToolBarButton.image()` and `.description()` switches (compiler-enforced). `description()` keys off `osc_toolbar.<key>` strings in `Base`/`en` only.
+- `PrefOSCToolbarSettingsSheetController.allButtonTypes` (NOT compiler-enforced) so the button shows in the OSC customization sheet.
+- `Preference.defaultPreference[.controlBarToolbarButtons]` if it should appear by default. Caveat: users with a previously-saved toolbar customization will NOT pick up new defaults — they must add it via the customization sheet.
+- `MainWindowController.toolBarButtonAction(_:)` for the click action. Buttons are built in `setupOSCToolbarButtons` and added to `fragToolbarView`.
+
+A button whose appearance reflects per-media or feature state (e.g. a toggle's tint) must be refreshed both where the state mutates AND on the `PlayerCore` fileLoaded path — the OSC is built once per window, but `MultiLoopController.resetForNewItem()` resets feature state for each new media item, so without a fileLoaded refresh the button shows stale state. Find the live button via `fragToolbarView.views` filtered by `tag == ToolBarButton.<case>.rawValue` (see `MainWindowController.refreshMultiLoopUI()`).
+
 ## Layout patterns
 
 - Prefer XIB layout when adding normal preference panels or established sidebars, per `CONTRIBUTING.md`.

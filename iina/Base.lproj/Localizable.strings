@@ -52,14 +52,9 @@
 "quicksetting.hdr" = "HDR";
 "quicksetting.hide" = "Hide";
 "quicksetting.reset_speed" = "Reset speed to 1x";
-"quicksetting.tab.loop" = "Loop";
 
 // MultiLoopViewController
 "multiloop.empty" = "No loop segments";
-"multiloop.enforcement.enabled" = "Multi-Loop Enabled";
-"multiloop.enforcement.disabled" = "Multi-Loop Disabled";
-"multiloop.enforcement.toggle" = "Toggle multi-loop enforcement";
-"multiloop.enforcement.tooltip" = "Temporarily disable multi-loop playback without deleting segments.";
 "multiloop.sort_by_start" = "Sort by Start";
 "multiloop.sort_by_start.tooltip" = "Sort loop segments by start time";
 
@@ -425,6 +420,8 @@
 "osc_toolbar.sub_track" = "Choose subtitle track";
 "osc_toolbar.screenshot" = "Take a screenshot";
 "osc_toolbar.plugins" = "Show plugins panel";
+"osc_toolbar.multiloop_toggle" = "Toggle multi-loop playback";
+"osc_toolbar.multiloop_manage" = "Manage loop segments";
 
 "mini_player.album_art" = "Toggle album art";
 "mini_player.loop" = "Repeat";
