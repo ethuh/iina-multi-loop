@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Check AppKit UI additions follow existing target/action, layout, accessibility, and localization conventions."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Check UI quality, localization scope, playback performance safety, and manual/build verification expectations."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Verify UI state, PlayerCore wrappers, MultiLoopController behavior, marker display, and playback enforcement remain consistent."}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"Verify implementation reuses existing multi-loop mutation/refresh paths and avoids duplicate state plumbing."}

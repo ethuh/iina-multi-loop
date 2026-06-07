@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Programmatic AppKit UI patterns, target/action wiring, layout, localization expectations, and table/control conventions for the Loop UI."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"macOS UI quality, accessibility/localization rules, performance constraints during playback UI updates, and verification expectations."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Feature crosses UI controls, PlayerCore boundaries, and playback-state behavior; subagents need cross-layer data-flow checks."}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"Encourages reusing existing multi-loop controller/PlayerCore/UI patterns instead of adding parallel mechanisms."}
