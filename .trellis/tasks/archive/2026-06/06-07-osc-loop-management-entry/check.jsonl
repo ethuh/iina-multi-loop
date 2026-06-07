@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify macOS UI quality: accessibility labels/tooltips, Base/en-only localization, lifecycle cleanup (popover), no spurious XIB churn"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Swift formatting, Xcode build verification, architecture-boundary checks (PlayerCore/MainWindowController boundaries respected)"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check OSC button + popover component structure and localization conventions match project patterns"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify Loop tab removal + refresh-hook re-routing leaves no dangling .loop tab references or unrefreshed UI paths"}

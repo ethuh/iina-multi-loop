@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "OSC toolbar buttons + popover-hosted MultiLoopViewController: NSViewController/NSButton structure, target/action wiring, layout, localization conventions"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Toggle button must mirror player.multiLoop.enforcementEnabled and refresh on mutation/media change; PlayerCore + Preference + controller-local state patterns"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Wiring the .controlBarToolbarButtons preference, button actions, and the re-routed multi-loop refresh hook (observers/KVO/event patterns)"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Respect app/playback boundary: route loop behavior through PlayerCore, OSC/window logic in MainWindowController, no direct mpv calls"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse existing OSCToolbarButton styling, ToolBarButton enum pattern, and MultiLoopViewController instead of duplicating; update default .controlBarToolbarButtons consistently"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Re-route reloadLoopTab() refresh across PlayerCore -> MainWindowController -> OSC toggle/popover; ensure all 7 call sites + Loop tab removal stay consistent"}
