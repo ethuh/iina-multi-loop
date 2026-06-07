@@ -173,3 +173,36 @@ Close out trellis for the loop-segment auto-sort feature whose code (commit 8f91
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: OSC loop management entry
+
+**Date**: 2026-06-07
+**Task**: OSC loop management entry
+**Branch**: `develop`
+
+### Summary
+
+Migrated multi-loop controls from the Quick Settings Loop tab to the OSC bottom toolbar: added a multiLoopToggle (enforcement on/off, tint reflects state) and multiLoopManage button (opens segment list/sort/drag/delete in an NSPopover), wired into the default toolbar + OSC customization sheet. Removed the Loop tab and repointed the refresh path to MainWindowController.refreshMultiLoopUI(). Fixed a stale gray toggle after reopening media by refreshing on the fileLoaded path. Captured an OSC-toolbar-button + per-media-refresh checklist in frontend/component-guidelines.md. Built (BUILD SUCCEEDED) and verified live (Debug build needed deep ad-hoc re-sign: CODE_SIGNING_ALLOWED=NO yields a linker-signed binary AMFI SIGKILLs on arm64).
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b04a324f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

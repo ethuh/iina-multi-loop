@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~175 | Active |
+| `journal-1.md` | ~208 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-06-07 | OSC loop management entry | `b04a324f` | `develop` |
 | 5 | 2026-06-07 | Auto-sort loop segments button (trellis close-out) | `8f9169b4` | `worktree-temporary-multiloop-disable-button` |
 | 4 | 2026-06-07 | Temporary multi-loop disable toggle (worktree) | `0f169236` | `worktree-temporary-multiloop-disable-button` |
 | 3 | 2026-06-06 | Add loop segment drag reordering | `02ff3a6f`, `e86505fe` | `develop` |
