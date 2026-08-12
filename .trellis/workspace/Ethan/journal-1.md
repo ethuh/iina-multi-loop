@@ -206,3 +206,36 @@ Migrated multi-loop controls from the Quick Settings Loop tab to the OSC bottom 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Persist multi-loop data and Emby identity
+
+**Date**: 2026-08-12
+**Task**: Persist multi-loop data and Emby identity
+**Branch**: `develop`
+
+### Summary
+
+Moved loop storage to SQLite, recovered legacy sidecars through playback history, added safe Emby media identity and import/export UI, updated the userscript, added focused tests, and prepared v1.4.3 release tooling.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ea783de3` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
