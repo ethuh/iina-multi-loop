@@ -823,7 +823,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
   @objc func handleURLEvent(event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
     openFileCalled = true
     guard let url = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else { return }
-    Logger.log("URL event: \(url)")
+    Logger.log("Received URL event")
     if isReady {
       parsePendingURL(url)
     } else {
@@ -844,11 +844,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
    - `enqueue`: 0 (default) or 1 to indicate whether to add the media to the current playlist.
    - `full_screen`: 0 (default) or 1 to indicate whether open the media and enter fullscreen.
    - `pip`: 0 (default) or 1 to indicate whether open the media and enter pip.
+   - `media_title`: optional safe filename/title for network media.
+   - `media_id`: optional non-secret external media identifier.
    - `mpv_*`: additional mpv options to be passed. e.g. `mpv_volume=20`.
      Options starting with `no-` are not supported.
    */
   private func parsePendingURL(_ url: String) {
-    Logger.log("Parsing URL \(url)")
+    Logger.log("Parsing URL scheme request")
     guard let parsed = URLComponents(string: url) else {
       Logger.log("Cannot parse URL using URLComponents", level: .warning)
       return
@@ -889,7 +891,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         PlayerCore.lastActive.postNotification(.iinaPlaylistChanged)
         PlayerCore.lastActive.sendOSD(.addToPlaylist(1))
       } else {
-        player.openURLString(urlValue)
+        player.openURLString(urlValue,
+                             multiLoopMediaTitle: queryDict["media_title"],
+                             multiLoopMediaID: queryDict["media_id"])
       }
 
       // presentation options

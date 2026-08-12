@@ -10,6 +10,8 @@ import Cocoa
 class MultiLoopViewController: NSViewController {
 
   private weak var player: PlayerCore!
+  private var importButton: NSButton!
+  private var exportButton: NSButton!
   private var sortButton: NSButton!
   private var tableView: NSTableView!
   private var scrollView: NSScrollView!
@@ -30,14 +32,23 @@ class MultiLoopViewController: NSViewController {
     let container = NSView()
     container.autoresizingMask = [.width, .height]
 
+    let importTitle = NSLocalizedString("multiloop.import", comment: "Import")
+    importButton = makeControlButton(title: importTitle,
+                                     toolTipKey: "multiloop.import.tooltip",
+                                     action: #selector(importSegments(_:)))
+    container.addSubview(importButton)
+
+    let exportTitle = NSLocalizedString("multiloop.export", comment: "Export")
+    exportButton = makeControlButton(title: exportTitle,
+                                     toolTipKey: "multiloop.export.tooltip",
+                                     action: #selector(exportSegments(_:)))
+    container.addSubview(exportButton)
+
     let sortTitle = NSLocalizedString("multiloop.sort_by_start", comment: "Sort loop segments by start time")
-    sortButton = NSButton(title: sortTitle, target: self, action: #selector(sortSegmentsByStartTime(_:)))
-    sortButton.translatesAutoresizingMaskIntoConstraints = false
-    sortButton.bezelStyle = .rounded
-    sortButton.controlSize = .small
-    sortButton.font = .systemFont(ofSize: 11)
+    sortButton = makeControlButton(title: sortTitle,
+                                   toolTipKey: "multiloop.sort_by_start.tooltip",
+                                   action: #selector(sortSegmentsByStartTime(_:)))
     sortButton.toolTip = NSLocalizedString("multiloop.sort_by_start.tooltip", comment: "Sort loop segments by start time tooltip")
-    sortButton.setAccessibilityLabel(sortTitle)
     container.addSubview(sortButton)
 
     // Table view
@@ -85,9 +96,13 @@ class MultiLoopViewController: NSViewController {
     container.addSubview(emptyLabel)
 
     NSLayoutConstraint.activate([
-      sortButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+      importButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+      importButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
+      exportButton.leadingAnchor.constraint(equalTo: importButton.trailingAnchor, constant: 6),
+      exportButton.centerYAnchor.constraint(equalTo: importButton.centerYAnchor),
       sortButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-      scrollView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 8),
+      sortButton.centerYAnchor.constraint(equalTo: importButton.centerYAnchor),
+      scrollView.topAnchor.constraint(equalTo: importButton.bottomAnchor, constant: 8),
       scrollView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
       scrollView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
       scrollView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8),
@@ -114,6 +129,19 @@ class MultiLoopViewController: NSViewController {
     emptyLabel.isHidden = !empty
     scrollView.isHidden = empty
     sortButton.isEnabled = player.multiLoop.segments.count > 1
+    exportButton.isEnabled = !player.multiLoop.segments.isEmpty && player.info.multiLoopVideoIdentity != nil
+    importButton.isEnabled = player.info.multiLoopVideoIdentity != nil
+  }
+
+  private func makeControlButton(title: String, toolTipKey: String, action: Selector) -> NSButton {
+    let button = NSButton(title: title, target: self, action: action)
+    button.translatesAutoresizingMaskIntoConstraints = false
+    button.bezelStyle = .rounded
+    button.controlSize = .small
+    button.font = .systemFont(ofSize: 11)
+    button.toolTip = NSLocalizedString(toolTipKey, comment: toolTipKey)
+    button.setAccessibilityLabel(title)
+    return button
   }
 
   private func formatTime(_ seconds: Double) -> String {
@@ -131,6 +159,75 @@ class MultiLoopViewController: NSViewController {
   @objc private func sortSegmentsByStartTime(_ sender: NSButton) {
     player.multiLoopSortSegmentsByStartTime()
     reload()
+  }
+
+  @objc private func importSegments(_ sender: NSButton) {
+    let title = NSLocalizedString("multiloop.import.panel_title", comment: "Import Loop Segments")
+    Utility.quickOpenPanel(title: title,
+                           chooseDir: false,
+                           sheetWindow: view.window,
+                           allowedFileTypes: ["json"]) { [weak self] url in
+      guard let self else { return }
+      do {
+        let data = try Data(contentsOf: url)
+        let segments = try MultiLoopExportDocument.decodeSegments(
+          from: data,
+          minimumLength: MultiLoopController.minimumSegmentLength)
+        self.confirmAndImport(segments)
+      } catch {
+        self.showImportExportError(key: "multiloop.import_failed", error: error)
+      }
+    }
+  }
+
+  @objc private func exportSegments(_ sender: NSButton) {
+    do {
+      let data = try player.multiLoopExportData()
+      let title = NSLocalizedString("multiloop.export.panel_title", comment: "Export Loop Segments")
+      Utility.quickSavePanel(title: title,
+                             filename: player.multiLoopSuggestedExportFilename,
+                             types: ["json"],
+                             sheetWindow: view.window) { [weak self] url in
+        guard let self else { return }
+        do {
+          try data.write(to: url, options: [.atomic])
+          self.player.multiLoopDidExport()
+        } catch {
+          self.showImportExportError(key: "multiloop.export_failed", error: error)
+        }
+      }
+    } catch {
+      showImportExportError(key: "multiloop.export_failed", error: error)
+    }
+  }
+
+  private func confirmAndImport(_ segments: [MultiLoopSegment]) {
+    let performImport = { [weak self] in
+      guard let self else { return }
+      do {
+        _ = try self.player.multiLoopImport(segments: segments)
+        self.reload()
+      } catch {
+        self.showImportExportError(key: "multiloop.import_failed", error: error)
+      }
+    }
+
+    guard !player.multiLoop.segments.isEmpty else {
+      performImport()
+      return
+    }
+    Utility.quickAskPanel("multiloop.import_replace", sheetWindow: view.window) { response in
+      if response == .alertFirstButtonReturn {
+        performImport()
+      }
+    }
+  }
+
+  private func showImportExportError(key: String, error: Error) {
+    Utility.showAlert(key,
+                      arguments: [error.localizedDescription],
+                      style: .warning,
+                      sheetWindow: view.window)
   }
 
   @objc private func deleteSegment(_ sender: NSButton) {

@@ -1150,7 +1150,7 @@ class MPVController: NSObject {
         player.info.state = .starting
         player.fileStarted(path: path)
         let url = player.info.currentURL
-        let message = player.info.isNetworkResource ? url?.absoluteString : url?.lastPathComponent
+        let message = player.info.isNetworkResource ? player.getMediaTitle() : url?.lastPathComponent
         player.sendOSD(.fileStart(message ?? "-"))
       }
 

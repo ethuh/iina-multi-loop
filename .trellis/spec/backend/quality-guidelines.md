@@ -12,6 +12,8 @@
 - CI-style build command from `AGENTS.md` is `xcodebuild -project iina.xcodeproj -scheme iina -configuration Nightly ONLY_ACTIVE_ARCH=NO`.
 - Prefer lightweight targeted verification when changing docs, scripts, or isolated source; full Xcode builds may require downloaded dylibs.
 
+> **Xcode SDK availability gotcha**: `Configs/Availability.xcconfig` expands `SWIFT_ACTIVE_COMPILATION_CONDITIONS` from `AVAILABLE_$(SDK_VERSION_MAJOR)`. When building with a newly numbered macOS SDK, add the corresponding cumulative `AVAILABLE_<version>` definition or Swift receives an invalid literal `$AVAILABLE_...` condition.
+
 ## Architectural review checks
 
 - Do not call mpv APIs outside `iina/MPVController.swift` and `iina/VideoView.swift`.

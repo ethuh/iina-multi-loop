@@ -484,6 +484,10 @@ class Utility {
     return Utility.appSupportDirUrl.appendingPathComponent(AppData.historyFile, isDirectory: false)
   }()
 
+  static let multiLoopDatabaseURL: URL = {
+    return Utility.appSupportDirUrl.appendingPathComponent(AppData.multiLoopDatabaseFile, isDirectory: false)
+  }()
+
   static let tempDirURL: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
 
   static let exeDirURL: URL = URL(fileURLWithPath: Bundle.main.executablePath!).deletingLastPathComponent()

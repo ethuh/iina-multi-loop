@@ -7,7 +7,7 @@ This project is IINA: a Swift/AppKit macOS media player built around libmpv, plu
 | Guide | Project scope | Status |
 |-------|---------------|--------|
 | [Directory Structure](./directory-structure.md) | Top-level repo layout, app/playback/mpv boundaries, generated and vendored files | Complete |
-| [Data and Persistence](./database-guidelines.md) | No ORM/database; `Preference`, file-backed state, watch-later keys, dependency state | Complete |
+| [Data and Persistence](./database-guidelines.md) | `Preference`, file-backed state, multi-loop SQLite, watch-later migration, dependency state | Complete |
 | [Error Handling](./error-handling.md) | AppKit alerts, recoverable playback errors, fatal invariants, mpv/threading edge cases | Complete |
 | [Logging Guidelines](./logging-guidelines.md) | `Logger` API, levels, subsystems, mpv log constraints, initialization caveats | Complete |
 | [Quality Guidelines](./quality-guidelines.md) | Swift 5.0 formatting, Xcode build verification, architecture boundaries, lifecycle review checks | Complete |

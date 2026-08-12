@@ -44,42 +44,9 @@ struct MultiLoopPersistedState: Codable, Equatable {
   var segments: [MultiLoopSegment]
 }
 
-final class MultiLoopStore {
-  private static let fileSuffix = ".iina-multiloop.json"
-
-  static func url(forWatchLaterKey watchLaterKey: String) -> URL {
-    Utility.watchLaterURL.appendingPathComponent(watchLaterKey + fileSuffix, isDirectory: false)
-  }
-
-  static func load(watchLaterKey: String) -> MultiLoopPersistedState? {
-    let fileURL = url(forWatchLaterKey: watchLaterKey)
-    guard FileManager.default.fileExists(atPath: fileURL.path) else { return nil }
-    do {
-      let data = try Data(contentsOf: fileURL)
-      return try JSONDecoder().decode(MultiLoopPersistedState.self, from: data)
-    } catch {
-      Logger.log("Failed to load multiloop state: \(error)", level: .warning)
-      return nil
-    }
-  }
-
-  static func save(_ state: MultiLoopPersistedState, watchLaterKey: String) {
-    let fileURL = url(forWatchLaterKey: watchLaterKey)
-    do {
-      let data = try JSONEncoder().encode(state)
-      try data.write(to: fileURL, options: [.atomic])
-    } catch {
-      Logger.log("Failed to save multiloop state: \(error)", level: .warning)
-    }
-  }
-
-  static func delete(watchLaterKey: String) {
-    let fileURL = url(forWatchLaterKey: watchLaterKey)
-    try? FileManager.default.removeItem(at: fileURL)
-  }
-}
-
 final class MultiLoopController {
+  static let minimumSegmentLength: Double = 0.05
+
   private unowned let player: PlayerCore
 
   private(set) var segments: [MultiLoopSegment] = []
@@ -87,6 +54,7 @@ final class MultiLoopController {
 
   private(set) var sequenceModeEnabled: Bool = false
   private(set) var enforcementEnabled: Bool = true
+  private(set) var persistenceErrorDescription: String?
 
   private var lastTickTime: CFTimeInterval = 0
   private var seekCooldownUntil: CFTimeInterval = 0
@@ -95,9 +63,6 @@ final class MultiLoopController {
 
   /// How close to an end boundary we treat as "end reached".
   private let boundaryEpsilon: Double = 0.08
-
-  /// Minimum segment length (seconds). Segments shorter than this are ignored.
-  private let minSegmentLength: Double = 0.05
 
   /// If playback overshoots a boundary by less than this amount, still treat it as reaching the end.
   private let endOvershootWindow: Double = 0.35
@@ -115,17 +80,32 @@ final class MultiLoopController {
     seekCooldownUntil = 0
     lastSegmentIndex = nil
     lastTimePos = nil
+    persistenceErrorDescription = nil
   }
 
   func loadIfAvailable() {
-    guard let key = player.info.watchLaterKey else { return }
-    let loaded = MultiLoopStore.load(watchLaterKey: key)
-    segments = (loaded?.segments ?? []).map { $0.normalized }
+    guard let identity = player.info.multiLoopVideoIdentity else { return }
+    let legacyPayloads = MultiLoopLegacyRecovery.payloads(
+      identity: identity,
+      watchLaterKey: player.info.watchLaterKey)
+    do {
+      segments = try MultiLoopStore.shared.load(identity: identity, merging: legacyPayloads)
+    } catch {
+      recordPersistenceError(error)
+      segments = []
+    }
   }
 
   func save() {
-    guard let key = player.info.watchLaterKey else { return }
-    MultiLoopStore.save(MultiLoopPersistedState(segments: segments.map { $0.normalized }), watchLaterKey: key)
+    guard let identity = player.info.multiLoopVideoIdentity else {
+      recordPersistenceError(MultiLoopStoreError.noVideoIdentity)
+      return
+    }
+    do {
+      try MultiLoopStore.shared.replace(segments.map { $0.normalized }, identity: identity)
+    } catch {
+      recordPersistenceError(error)
+    }
   }
 
   func clearAll(deleteFromDisk: Bool) {
@@ -134,9 +114,48 @@ final class MultiLoopController {
     sequenceModeEnabled = false
     lastSegmentIndex = nil
     lastTimePos = nil
-    if deleteFromDisk, let key = player.info.watchLaterKey {
-      MultiLoopStore.delete(watchLaterKey: key)
+    if deleteFromDisk, let identity = player.info.multiLoopVideoIdentity {
+      do {
+        try MultiLoopStore.shared.clear(identity: identity)
+      } catch {
+        recordPersistenceError(error)
+      }
     }
+  }
+
+  func replaceSegmentsFromImport(_ importedSegments: [MultiLoopSegment]) throws {
+    guard let identity = player.info.multiLoopVideoIdentity else {
+      throw MultiLoopStoreError.noVideoIdentity
+    }
+    let validated = try MultiLoopSegment.validatedDistinct(
+      importedSegments,
+      minimumLength: Self.minimumSegmentLength,
+      sorted: false)
+    try MultiLoopStore.shared.replace(validated, identity: identity)
+    segments = validated
+    pendingStart = nil
+    sequenceModeEnabled = false
+    lastSegmentIndex = nil
+    lastTimePos = nil
+    persistenceErrorDescription = nil
+    updateObservationForSegments()
+  }
+
+  func exportDocumentData() throws -> Data {
+    guard let identity = player.info.multiLoopVideoIdentity else {
+      throw MultiLoopStoreError.noVideoIdentity
+    }
+    return try MultiLoopExportDocument(identity: identity, segments: segments).encoded()
+  }
+
+  func consumePersistenceErrorDescription() -> String? {
+    defer { persistenceErrorDescription = nil }
+    return persistenceErrorDescription
+  }
+
+  private func recordPersistenceError(_ error: Error) {
+    persistenceErrorDescription = error.localizedDescription
+    Logger.log("Multi-loop persistence failed: \(error)", level: .warning)
   }
 
   @discardableResult
@@ -223,7 +242,7 @@ final class MultiLoopController {
     if let start = pendingStart {
       pendingStart = nil
       let seg = MultiLoopSegment(start: start, end: now).normalized
-      if abs(seg.end - seg.start) >= minSegmentLength {
+      if abs(seg.end - seg.start) >= Self.minimumSegmentLength {
         segments.append(seg)
         lastSegmentIndex = nil
         lastTimePos = nil

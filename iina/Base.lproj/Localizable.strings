@@ -57,6 +57,17 @@
 "multiloop.empty" = "No loop segments";
 "multiloop.sort_by_start" = "Sort by Start";
 "multiloop.sort_by_start.tooltip" = "Sort loop segments by start time";
+"multiloop.import" = "Import";
+"multiloop.import.tooltip" = "Replace this video's loop segments from a file";
+"multiloop.import.panel_title" = "Import Loop Segments";
+"multiloop.export" = "Export";
+"multiloop.export.tooltip" = "Export this video's loop segments to a file";
+"multiloop.export.panel_title" = "Export Loop Segments";
+"alert.multiloop.import_replace.title" = "Replace Loop Segments?";
+"alert.multiloop.import_replace.message" = "This video already has loop segments. Importing will replace all of them.";
+"alert.multiloop.import_failed" = "Could not import loop segments: %@";
+"alert.multiloop.export_failed" = "Could not export loop segments: %@";
+"alert.multiloop.persistence_failed" = "Loop segments could not be saved: %@";
 
 // EQ Presets
 "eq.preset.flat" = "Flat";
@@ -126,6 +137,8 @@
 "osd.multiloop.clear_all" = "Multi-Loop: Cleared";
 "osd.multiloop.enforcement_enabled" = "Multi-Loop: Enabled";
 "osd.multiloop.enforcement_disabled" = "Multi-Loop: Disabled";
+"osd.multiloop.imported" = "Imported %d loop segments";
+"osd.multiloop.exported" = "Exported %d loop segments";
 "osd.stop" = "Stop";
 "osd.chapter" = "Chapter: %@";
 "osd.subtitle_scale" = "Subtitle Scale: %@x";

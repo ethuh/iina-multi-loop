@@ -48,6 +48,7 @@ struct AppData {
   static let pluginsFolder = "plugins"
   static let binariesFolder = "bin"
   static let historyFile = "history.plist"
+  static let multiLoopDatabaseFile = "multiloop.sqlite3"
   static let thumbnailCacheFolder = "thumb_cache"
   static let screenshotCacheFolder = "screenshot_cache"
 

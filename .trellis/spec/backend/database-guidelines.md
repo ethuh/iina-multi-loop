@@ -1,6 +1,75 @@
 # Core Data and Persistence Guidelines
 
-This project does not use a database or ORM. Persistent data is stored through macOS app mechanisms, files in Application Support-style locations, watch-later data, and mpv state.
+This project uses macOS app mechanisms, files in Application Support-style locations, watch-later data, mpv state, and one narrowly scoped system-SQLite store for multi-loop records. It does not use an ORM or a server database.
+
+## Scenario: Multi-loop SQLite persistence and external media identity
+
+### 1. Scope / Trigger
+
+- Use this contract when changing multi-loop persistence, video identity, legacy loop recovery, or the Emby-to-IINA URL-scheme integration.
+- The SQLite store exists because mpv watch-later keys hash the raw playback URL. Signed Emby URLs change between launches, which made JSON sidecars appear lost.
+
+### 2. Signatures
+
+- Database file: `Utility.multiLoopDatabaseURL`, resolving to `Application Support/<bundle-id>/multiloop.sqlite3`.
+- Store entry points:
+  - `load(identity:merging:) -> [MultiLoopSegment]`
+  - `replace(_:identity:)`
+  - `clear(identity:)`
+- URL-scheme fields accepted by `iina://weblink`:
+  - `media_title`: optional human-readable filename/title.
+  - `media_id`: optional non-secret external item ID.
+- Schema version: `PRAGMA user_version = 1`, with `videos`, `loop_segments`, and `legacy_imports` tables. `external_id` is unique; `normalized_name` is indexed but not unique because different Emby items can share a filename.
+
+### 3. Contracts
+
+- Emby identity is `emby:<lowercased-host[:port]>:<media-id>`; it never contains a path, query, fragment, API key, or session ID.
+- Filename/title fallback is source basename, then Emby title, then `Emby-<item-id>`. A generic `stream`, `master`, or `playlist` path is not a valid identity.
+- An identity with `externalID` resolves only by that ID. It must not fall back to a same-named external row. An identity without `externalID` may resolve by normalized name among rows whose `external_id IS NULL`.
+- SQLite access is serialized, uses bound values, foreign keys, busy timeout, WAL, and transactions. The database is the sole write target; legacy JSON sidecars remain read-only migration sources.
+- Import replaces the current video's loop set. Export includes only format/version, source display name, and segment times.
+
+### 4. Validation & Error Matrix
+
+- Missing safe filename/title and missing safe external ID -> `MultiLoopStoreError.noVideoIdentity`; do not persist under a URL or URL hash.
+- Unsupported database `user_version` -> `unsupportedSchema`; close the store and surface an actionable persistence alert.
+- Non-finite/negative/too-short imported segment -> `invalidSegment`; do not mutate SQLite or in-memory segments.
+- Unsupported export envelope version/format -> `unsupportedImportFormat`.
+- SQLite prepare/bind/step/commit failure -> roll back the transaction, log a credential-free warning, keep playback usable, and surface the error through `PlayerCore`.
+- Corrupt or unmatched legacy sidecar -> leave it untouched and unassigned.
+
+### 5. Good/Base/Bad Cases
+
+- Good: Two signed URLs for the same Emby server/item resolve to one `external_id`, even if their query parameters and display names differ.
+- Base: A local file uses its filename and an `external_id` of `NULL`.
+- Good: Two Emby item IDs with the same filename create separate video rows.
+- Bad: Using `stream.mp4?api_key=...`, its full URL, or its MD5 as `display_name`, `normalized_name`, or `external_id`.
+- Bad: Making `normalized_name` globally unique, which aliases distinct external items with equal filenames.
+
+### 6. Tests Required
+
+- Identity: POSIX/local filename, Windows source path, unsafe signed title fallback, generic stream rejection, and distinct external IDs with equal names.
+- Store: replace/load across reopen, clear, different-item isolation, transactional legacy merge, near-duplicate removal, sort order, and migration-marker non-resurrection.
+- Import/export: versioned round trip, legacy payload, invalid segment rejection, and absence of URL/API/external-ID fields.
+- Integration: `node --check` the userscript and build the IINA scheme.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```swift
+let identity = playbackURL.absoluteString
+let key = identity.md5
+```
+
+#### Correct
+
+```swift
+guard let identity = MultiLoopVideoIdentity.resolve(
+  url: playbackURL,
+  externalMetadata: MultiLoopExternalMetadata(title: filename, mediaID: embyItemID)) else { return }
+try MultiLoopStore.shared.replace(segments, identity: identity)
+```
 
 ## Preferences
 
@@ -30,5 +99,6 @@ This project does not use a database or ORM. Persistent data is stored through m
 ## Anti-patterns
 
 - Do not introduce an ORM, server database, or network-backed persistence for app settings; the current app is local-first.
+- Do not add another SQLite store casually. The multi-loop database is a feature-scoped exception with explicit schema/version/migration tests.
 - Do not scatter preference string literals throughout controllers when a `Preference.Key` exists or should be added.
 - Do not treat generated mpv binding files as editable data stores. Regenerate `MPVCommand`, `MPVOption`, and `MPVProperty` with `other/parse_doc.rb`.

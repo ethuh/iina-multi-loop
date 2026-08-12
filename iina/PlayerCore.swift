@@ -207,6 +207,8 @@ class PlayerCore: NSObject {
   lazy var info: PlaybackInfo = PlaybackInfo(self)
 
   lazy var multiLoop: MultiLoopController = MultiLoopController(player: self)
+  private var requestedMultiLoopExternalMetadata: MultiLoopExternalMetadata?
+  private var hasPreparedMultiLoopIdentity = false
 
   var syncUITimer: Timer?
 
@@ -343,7 +345,14 @@ class PlayerCore: NSObject {
       log("empty file path or url", level: .error)
       return
     }
-    log("Open URL: \(url.absoluteString)")
+    if url.isFileURL {
+      log("Open URL: \(url.path)")
+    } else {
+      var safeComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
+      safeComponents?.query = nil
+      safeComponents?.fragment = nil
+      log("Open network URL: \(safeComponents?.string ?? url.path)")
+    }
     let isNetwork = !url.isFileURL || url.pathExtension.starts(with: "m3u")
     if isNetwork {
       currentWindow?.close()
@@ -415,7 +424,13 @@ class PlayerCore: NSObject {
     openURLs([url], shouldAutoLoad: shouldAutoLoad)
   }
 
-  func openURLString(_ str: String) {
+  func openURLString(_ str: String,
+                     multiLoopMediaTitle: String? = nil,
+                     multiLoopMediaID: String? = nil) {
+    requestedMultiLoopExternalMetadata = MultiLoopExternalMetadata(
+      title: multiLoopMediaTitle,
+      mediaID: multiLoopMediaID)
+    defer { requestedMultiLoopExternalMetadata = nil }
     if str == "-" {
       openMainWindow(path: str, url: URL(string: "stdin")!, isNetwork: false)
       return
@@ -454,6 +469,10 @@ class PlayerCore: NSObject {
     log("Opening \(path) in main window")
     info.currentURL = url
     info.isNetworkResource = isNetwork
+    info.multiLoopVideoIdentity = MultiLoopVideoIdentity.resolve(
+      url: url,
+      externalMetadata: requestedMultiLoopExternalMetadata)
+    hasPreparedMultiLoopIdentity = true
     info.audioTracks = []
     info.chapters = []
     info.playlist = []
@@ -1112,6 +1131,7 @@ class PlayerCore: NSObject {
 
   func multiLoopSetPoint() {
     let result = multiLoop.setPointAtCurrentTime()
+    reportMultiLoopPersistenceError()
     switch result {
     case .startSet:
       sendOSD(.multiLoopPoint)
@@ -1127,6 +1147,7 @@ class PlayerCore: NSObject {
 
   func multiLoopUndoPoint() {
     let result = multiLoop.undoLastPoint()
+    reportMultiLoopPersistenceError()
     switch result {
     case .pendingCleared:
       sendOSD(.multiLoopUndoPending)
@@ -1142,6 +1163,7 @@ class PlayerCore: NSObject {
 
   func multiLoopRemoveSegment(at index: Int) {
     multiLoop.removeSegment(at: index)
+    reportMultiLoopPersistenceError()
     sendOSD(.multiLoopSegmentRemoved)
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
@@ -1150,6 +1172,7 @@ class PlayerCore: NSObject {
 
   func multiLoopMoveSegment(from sourceIndex: Int, to insertionIndex: Int) -> Bool {
     guard multiLoop.moveSegment(from: sourceIndex, to: insertionIndex) else { return false }
+    reportMultiLoopPersistenceError()
     guard mainWindow.loaded, info.state.active else { return true }
     mainWindow.syncSlider()
     mainWindow.refreshMultiLoopUI()
@@ -1158,6 +1181,7 @@ class PlayerCore: NSObject {
 
   func multiLoopSortSegmentsByStartTime() {
     guard multiLoop.sortSegmentsByStartTime() else { return }
+    reportMultiLoopPersistenceError()
     guard mainWindow.loaded, info.state.active else { return }
     mainWindow.syncSlider()
     mainWindow.refreshMultiLoopUI()
@@ -1171,6 +1195,7 @@ class PlayerCore: NSObject {
 
   func multiLoopClearAll() {
     multiLoop.clearAll(deleteFromDisk: true)
+    reportMultiLoopPersistenceError()
     multiLoop.updateObservationForSegments()
     sendOSD(.multiLoopClearAll)
     guard mainWindow.loaded, info.state.active else { return }
@@ -1187,6 +1212,36 @@ class PlayerCore: NSObject {
 
   func multiLoopHandleTimePosUpdate(_ timePos: Double) {
     multiLoop.handleTimePosUpdate(timePos)
+  }
+
+  func multiLoopImport(segments imported: [MultiLoopSegment]) throws -> Int {
+    try multiLoop.replaceSegmentsFromImport(imported)
+    let importedCount = multiLoop.segments.count
+    sendOSD(.multiLoopImported(importedCount))
+    guard mainWindow.loaded, info.state.active else { return importedCount }
+    mainWindow.syncSlider()
+    mainWindow.refreshMultiLoopUI()
+    return importedCount
+  }
+
+  func multiLoopExportData() throws -> Data {
+    return try multiLoop.exportDocumentData()
+  }
+
+  var multiLoopSuggestedExportFilename: String {
+    return info.multiLoopVideoIdentity?.exportFilename ?? "loops.iina-multiloop.json"
+  }
+
+  func multiLoopDidExport() {
+    sendOSD(.multiLoopExported(multiLoop.segments.count))
+  }
+
+  private func reportMultiLoopPersistenceError() {
+    guard let message = multiLoop.consumePersistenceErrorDescription() else { return }
+    Utility.showAlert("multiloop.persistence_failed",
+                      arguments: [message],
+                      style: .warning,
+                      sheetWindow: currentWindow)
   }
 
   /// Synchronize IINA with the state of the [mpv](https://mpv.io/manual/stable/) A-B loop command.
@@ -1982,6 +2037,14 @@ class PlayerCore: NSObject {
 
     info.mpvPath = path
     info.watchLaterKey = Utility.mpvWatchLaterMd5(path)
+    if hasPreparedMultiLoopIdentity {
+      hasPreparedMultiLoopIdentity = false
+    } else {
+      let itemURL = path.contains("://") ?
+        URL(string: path.addingPercentEncoding(withAllowedCharacters: .urlAllowed) ?? path) :
+        URL(fileURLWithPath: path)
+      info.multiLoopVideoIdentity = itemURL.flatMap { MultiLoopVideoIdentity.resolve(url: $0) }
+    }
     multiLoop.resetForNewItem()
 
     info.currentURL = path.contains("://") ?
@@ -2106,6 +2169,7 @@ class PlayerCore: NSObject {
     syncAbLoop()
 
     multiLoop.loadIfAvailable()
+    reportMultiLoopPersistenceError()
     multiLoop.updateObservationForSegments()
     if mainWindow.loaded, info.state.active {
       mainWindow.syncSlider()
@@ -2944,6 +3008,12 @@ class PlayerCore: NSObject {
   }
 
   func getMediaTitle(withExtension: Bool = true) -> String {
+    if let identity = info.multiLoopVideoIdentity {
+      if withExtension {
+        return identity.displayName
+      }
+      return (identity.displayName as NSString).deletingPathExtension
+    }
     let mediaTitle = mpv.getString(MPVProperty.mediaTitle)
     let mediaPath = withExtension ? info.currentURL?.path : info.currentURL?.deletingPathExtension().path
     return mediaTitle ?? mediaPath ?? ""

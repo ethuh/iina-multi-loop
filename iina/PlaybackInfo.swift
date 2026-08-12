@@ -103,6 +103,7 @@ class PlaybackInfo {
   var watchLaterKey: String?
   var isNetworkResource: Bool = false
   var mpvMd5: String?
+  var multiLoopVideoIdentity: MultiLoopVideoIdentity?
 
   var videoWidth: Int?
   var videoHeight: Int?
