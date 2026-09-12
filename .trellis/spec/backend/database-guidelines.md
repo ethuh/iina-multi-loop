@@ -24,7 +24,12 @@ This project uses macOS app mechanisms, files in Application Support-style locat
 ### 3. Contracts
 
 - Emby identity is `emby:<lowercased-host[:port]>:<media-id>`; it never contains a path, query, fragment, API key, or session ID.
-- Filename/title fallback is source basename, then Emby title, then `Emby-<item-id>`. A generic `stream`, `master`, or `playlist` path is not a valid identity.
+- Filename/title fallback is source basename, then Emby title, then `Emby-<item-id>`. A generic `stream`, `master`, `playlist`, or `original` path is not a valid identity.
+- Two launch paths must both produce the same identity for the same Emby item, and both must be kept working:
+  - The `embytest` browser script sends `iina://weblink?...&media_title=&media_id=`; `media_id` is `itemInfo.Id`.
+  - `embyToLocalPlayer` sends a bare stream URL through `iina-cli` (`/emby/videos/{itemId}/original.mp4?...`) plus `--mpv-force-media-title=<emby title>  |  <filename>`, and never reaches `openURLString`.
+  Explicit metadata wins; otherwise the item ID comes from the URL path (`embyMediaID(for:)`) and the display name from mpv's `force-media-title`. The two ID sources are the same Emby item ID space.
+- `force-media-title` may only be consulted for network URLs, and only at `openMainWindow`. It can be set globally in `mpv.conf` (which would collapse every local file into one identity), and mpv keeps it sticky across playlist items, so the `fileStarted` fallback stays URL-only.
 - An identity with `externalID` resolves only by that ID. It must not fall back to a same-named external row. An identity without `externalID` may resolve by normalized name among rows whose `external_id IS NULL`.
 - SQLite access is serialized, uses bound values, foreign keys, busy timeout, WAL, and transactions. The database is the sole write target; legacy JSON sidecars remain read-only migration sources.
 - Import replaces the current video's loop set. Export includes only format/version, source display name, and segment times.
