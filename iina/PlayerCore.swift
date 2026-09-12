@@ -427,9 +427,13 @@ class PlayerCore: NSObject {
   func openURLString(_ str: String,
                      multiLoopMediaTitle: String? = nil,
                      multiLoopMediaID: String? = nil) {
-    requestedMultiLoopExternalMetadata = MultiLoopExternalMetadata(
-      title: multiLoopMediaTitle,
-      mediaID: multiLoopMediaID)
+    // Leave this nil when the caller supplied neither field, so the forced media title can still
+    // act as a fallback for an older browser script that sends only `url`.
+    if multiLoopMediaTitle != nil || multiLoopMediaID != nil {
+      requestedMultiLoopExternalMetadata = MultiLoopExternalMetadata(
+        title: multiLoopMediaTitle,
+        mediaID: multiLoopMediaID)
+    }
     defer { requestedMultiLoopExternalMetadata = nil }
     if str == "-" {
       openMainWindow(path: str, url: URL(string: "stdin")!, isNetwork: false)
@@ -465,13 +469,34 @@ class PlayerCore: NSObject {
   }
 
 
+  /// Falls back to mpv's `force-media-title` for the multi-loop display name.
+  ///
+  /// embyToLocalPlayer launches IINA through `iina-cli` with a bare stream URL plus
+  /// `--mpv-force-media-title=<emby title>  |  <filename>`. That path never reaches
+  /// `openURLString`, so no metadata is supplied; the command-line branch applies mpv arguments
+  /// before opening, so the option is readable here.
+  ///
+  /// Only used for network URLs: the option can be set globally in `mpv.conf`, which would
+  /// otherwise collapse every local file into one identity.
+  private func forcedMediaTitleMetadata(for url: URL) -> MultiLoopExternalMetadata? {
+    guard !url.isFileURL,
+          let forced = mpv.getString(MPVOption.Miscellaneous.forceMediaTitle),
+          !forced.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+    // The title is `<emby title>  |  <filename>`; take the filename so the identity matches the
+    // name the browser script supplies for the same item. A pipe inside the Emby title is fine.
+    let trailing = forced.components(separatedBy: "|").last?
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    let title = (trailing?.isEmpty ?? true) ? forced : trailing!
+    return MultiLoopExternalMetadata(title: title, mediaID: nil)
+  }
+
   private func openMainWindow(path: String, url: URL, isNetwork: Bool) {
     log("Opening \(path) in main window")
     info.currentURL = url
     info.isNetworkResource = isNetwork
     info.multiLoopVideoIdentity = MultiLoopVideoIdentity.resolve(
       url: url,
-      externalMetadata: requestedMultiLoopExternalMetadata)
+      externalMetadata: requestedMultiLoopExternalMetadata ?? forcedMediaTitleMetadata(for: url))
     hasPreparedMultiLoopIdentity = true
     info.audioTracks = []
     info.chapters = []

@@ -19,7 +19,40 @@ let fallbackIdentity = MultiLoopVideoIdentity.resolve(
   url: embyURL,
   externalMetadata: MultiLoopExternalMetadata(title: "stream.mp4?api_key=secret", mediaID: "item-1"))!
 expect(fallbackIdentity.displayName == "Emby-item-1", "Unsafe supplied title should fall back to Emby item ID")
-expect(MultiLoopVideoIdentity.resolve(url: embyURL) == nil, "Generic stream path must not become an identity")
+
+// embyToLocalPlayer launches IINA through iina-cli with no metadata at all. The Emby item ID must
+// still come from the stream URL, or every Emby item collapses into one shared identity.
+let barePlayerIdentity = MultiLoopVideoIdentity.resolve(
+  url: URL(string: "https://media.example.test/emby/videos/3346/original.mp4?api_key=secret&PlaySessionId=abc")!)!
+expect(barePlayerIdentity.externalID == "emby:media.example.test:3346",
+       "Emby item ID must be derived from the stream URL when no metadata is supplied")
+expect(barePlayerIdentity.sourceKind == .emby, "URL-derived Emby streams should be tagged as Emby")
+expect(barePlayerIdentity.displayName == "Emby-3346",
+       "Without a supplied title the display name should fall back to the Emby item ID")
+expect(!barePlayerIdentity.externalID!.contains("secret") &&
+       !barePlayerIdentity.externalID!.contains("abc"),
+       "URL-derived identity must not carry query parameters")
+
+let otherBareIdentity = MultiLoopVideoIdentity.resolve(
+  url: URL(string: "https://media.example.test/emby/videos/3354/original.mp4?api_key=secret")!)!
+expect(otherBareIdentity.externalID != barePlayerIdentity.externalID,
+       "Different Emby item IDs must not share an identity when both are named original.mp4")
+
+// The forced media title reaches resolve() already split by PlayerCore.
+let forcedTitleIdentity = MultiLoopVideoIdentity.resolve(
+  url: URL(string: "https://media.example.test/emby/videos/3346/original.mp4?api_key=secret")!,
+  externalMetadata: MultiLoopExternalMetadata(title: "FC2-PPV-2574551-CD3.mp4", mediaID: nil))!
+expect(forcedTitleIdentity.externalID == barePlayerIdentity.externalID,
+       "A forced title must not change which Emby item the identity points at")
+expect(forcedTitleIdentity.displayName == "FC2-PPV-2574551-CD3.mp4",
+       "A forced title should become the display name")
+
+expect(MultiLoopVideoIdentity.resolve(
+  url: URL(string: "https://cdn.example.test/assets/original.mp4")!) == nil,
+  "A non-Emby generic stream path must not become an identity")
+expect(MultiLoopVideoIdentity.resolve(
+  url: URL(string: "https://cdn.example.test/assets/stream.mp4")!) == nil,
+  "Generic stream path must not become an identity")
 
 let localIdentity = MultiLoopVideoIdentity.resolve(url: URL(fileURLWithPath: "/tmp/影片.mp4"))!
 expect(localIdentity.displayName == "影片.mp4", "Local identity should use the filename")

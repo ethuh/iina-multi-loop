@@ -28,7 +28,10 @@ struct MultiLoopVideoIdentity: Equatable {
   let sourceKind: MultiLoopSourceKind
 
   static func resolve(url: URL, externalMetadata: MultiLoopExternalMetadata? = nil) -> MultiLoopVideoIdentity? {
-    let mediaID = safeMediaID(externalMetadata?.mediaID)
+    // The browser script supplies the Emby item ID explicitly. Launches that arrive through
+    // iina-cli (embyToLocalPlayer) carry no metadata at all, so fall back to the item ID embedded
+    // in the stream URL; both sources use the same Emby item ID space.
+    let mediaID = safeMediaID(externalMetadata?.mediaID) ?? embyMediaID(for: url)
     let suppliedTitle = safeDisplayName(externalMetadata?.title)
 
     if let mediaID,
@@ -56,13 +59,17 @@ struct MultiLoopVideoIdentity: Equatable {
   }
 
   static func embyExternalID(for url: URL) -> String? {
-    let pathComponents = url.pathComponents
-    guard let videosIndex = pathComponents.firstIndex(where: { $0.caseInsensitiveCompare("videos") == .orderedSame }),
-          pathComponents.indices.contains(videosIndex + 1),
-          let mediaID = safeMediaID(pathComponents[videosIndex + 1]),
-          let host = url.host?.lowercased() else { return nil }
+    guard let mediaID = embyMediaID(for: url), let host = url.host?.lowercased() else { return nil }
     let portSuffix = url.port.map { ":\($0)" } ?? ""
     return "emby:\(host)\(portSuffix):\(mediaID)"
+  }
+
+  /// The Emby item ID in a stream URL such as `https://host/emby/videos/3346/original.mp4?…`.
+  static func embyMediaID(for url: URL) -> String? {
+    let pathComponents = url.pathComponents
+    guard let videosIndex = pathComponents.firstIndex(where: { $0.caseInsensitiveCompare("videos") == .orderedSame }),
+          pathComponents.indices.contains(videosIndex + 1) else { return nil }
+    return safeMediaID(pathComponents[videosIndex + 1])
   }
 
   var exportFilename: String {
@@ -110,7 +117,7 @@ struct MultiLoopVideoIdentity: Equatable {
 
   private static func isGenericStreamName(_ value: String) -> Bool {
     let stem = (value as NSString).deletingPathExtension.lowercased()
-    return stem == "stream" || stem == "master" || stem == "playlist"
+    return stem == "stream" || stem == "master" || stem == "playlist" || stem == "original"
   }
 }
 

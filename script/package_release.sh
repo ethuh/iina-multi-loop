@@ -11,9 +11,20 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/.build/codex-derived-data/Build/Products/Release/IINA.app"
 ARTIFACT_DIR="$ROOT_DIR/.build/release-artifacts"
 ARCHIVE="$ARTIFACT_DIR/IINA-$VERSION-macOS.zip"
+DMG="$ARTIFACT_DIR/IINA-$VERSION-macOS.dmg"
+DMG_STAGE="$ARTIFACT_DIR/dmg-stage"
 
 "$ROOT_DIR/script/build_and_run.sh" build Release
 codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 mkdir -p "$ARTIFACT_DIR"
 ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ARCHIVE"
-shasum -a 256 "$ARCHIVE"
+
+# Drag-to-install disk image.
+rm -rf "$DMG_STAGE" "$DMG"
+mkdir -p "$DMG_STAGE"
+ditto "$APP_BUNDLE" "$DMG_STAGE/IINA.app"
+ln -s /Applications "$DMG_STAGE/Applications"
+hdiutil create -volname "IINA $VERSION" -srcfolder "$DMG_STAGE" -fs HFS+ -format UDZO -ov "$DMG"
+rm -rf "$DMG_STAGE"
+
+shasum -a 256 "$ARCHIVE" "$DMG"
