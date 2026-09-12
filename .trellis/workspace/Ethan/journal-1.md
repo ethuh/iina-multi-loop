@@ -239,3 +239,37 @@ Moved loop storage to SQLite, recovered legacy sidecars through playback history
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Emby multi-CD loop identity for embyToLocalPlayer
+
+**Date**: 2026-09-12
+**Task**: Emby multi-CD loop identity for embyToLocalPlayer
+**Branch**: `feat/emby-multicd-loop-identity`
+
+### Summary
+
+Derive the Emby item ID from the stream URL and the display name from mpv force-media-title, so embyToLocalPlayer-launched CD2/CD3 stop sharing one original.mp4 identity. embytest path unchanged.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d4f78dba` | (see git log) |
+| `36844970` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

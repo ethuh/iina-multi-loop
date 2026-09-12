@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
-- **Last Active**: 2026-08-12
+- **Total Sessions**: 8
+- **Last Active**: 2026-09-12
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~241 | Active |
+| `journal-1.md` | ~275 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-09-12 | Emby multi-CD loop identity for embyToLocalPlayer | `d4f78dba`, `36844970` | `feat/emby-multicd-loop-identity` |
 | 7 | 2026-08-12 | Persist multi-loop data and Emby identity | `ea783de3` | `develop` |
 | 6 | 2026-06-07 | OSC loop management entry | `b04a324f` | `develop` |
 | 5 | 2026-06-07 | Auto-sort loop segments button (trellis close-out) | `8f9169b4` | `worktree-temporary-multiloop-disable-button` |
